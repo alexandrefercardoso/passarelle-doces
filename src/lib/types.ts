@@ -1,0 +1,122 @@
+export type Category = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type Product = {
+  id: string;
+  categoryId: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  compareAtPrice: number | null;
+  imageUrl: string;
+  gallery: string[];
+  stock: number;
+  isActive: boolean;
+  isBestSeller: boolean;
+  salesCount: number;
+  badges: string[];
+};
+
+export type ProductWithCategory = Product & {
+  category: Category | null;
+  discountPercent: number | null;
+  savings: number | null;
+};
+
+export type Banner = {
+  id: string;
+  title: string;
+  subtitle: string;
+  imageUrl: string;
+  buttonText: string;
+  linkUrl: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type InstagramPost = {
+  id: string;
+  imageUrl: string;
+  linkUrl: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type CartItem = {
+  productId: string;
+  name: string;
+  slug: string;
+  price: number;
+  compareAtPrice: number | null;
+  imageUrl: string;
+  quantity: number;
+  stock: number;
+};
+
+export type OrderItem = {
+  productId: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  imageUrl: string;
+};
+
+export type OrderStatus =
+  "aguardando_pagamento" | "confirmado" | "preparando" | "enviado" | "entregue" | "cancelado";
+
+export type PaymentMethod = "pix" | "cartao" | "boleto";
+
+export type CustomerInfo = {
+  name: string;
+  email: string;
+  phone: string;
+  document: string;
+  zipCode: string;
+  address: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  notes?: string;
+};
+
+export type ShippingMethod = {
+  id: string;
+  name: string;
+  price: number;
+  estimate: string;
+};
+
+export type Order = {
+  id: string;
+  createdAt: string;
+  status: OrderStatus;
+  paymentMethod: PaymentMethod;
+  paymentStatus: "pendente" | "aprovado" | "recusado" | "cancelado";
+  items: OrderItem[];
+  subtotal: number;
+  discount: number;
+  shipping: number;
+  total: number;
+  customer: CustomerInfo;
+};
+
+export type SiteSettings = {
+  whatsapp: string;
+  instagram: string;
+  facebook: string;
+  email: string;
+  phone: string;
+  address: string;
+  hours: string;
+  promoMessage: string;
+};
