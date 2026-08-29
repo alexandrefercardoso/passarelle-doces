@@ -9,17 +9,32 @@ export const SITE_NAME = "PASSARELLI DOCES";
 export const SITE_TAGLINE = "Doces especiais para momentos especiais";
 
 export const DEFAULT_SETTINGS: SiteSettings = {
-  whatsapp: "11987654321",
-  instagram: "@passarellidoces",
-  facebook: "passarellidoces",
+  // Identidade
+  name: "PASSARELLI DOCES",
+  tagline: "Doces especiais para momentos especiais",
+  primaryColor: "#2a1510",
+  secondaryColor: "#c9a84c",
+  // Contato
   email: "contato@passarellidoces.com.br",
   phone: "(11) 98765-4321",
+  whatsapp: "5511987654321",
   address: "Rua dos Doces, 123 - Centro · São Paulo/SP",
   hours: "Segunda a sábado, das 09h às 19h",
+  mapUrl: "https://www.google.com/maps/embed?pb=...",
+  // Redes sociais
+  social: [
+    { platform: "instagram", url: "https://instagram.com/passarellidoces", label: "Instagram" },
+    { platform: "facebook", url: "https://facebook.com/passarellidoces", label: "Facebook" },
+    { platform: "whatsapp", url: "https://wa.me/5511987654321", label: "WhatsApp" },
+  ],
+  // WhatsApp flutuante
+  whatsappNumber: "5511987654321",
+  whatsappMessage: "Olá! Gostaria de fazer um pedido 🍬",
+  // Promo
   promoMessage: "Doces especiais para deixar seu dia ainda mais doce 🍬",
 };
 
-export const ADMINS = ["admin@passarellidoces.com.br", "passarelli@somai.co"];
+export const ADMINS = ["alejandrecardoso@gmail.com"];
 
 export const MENU_HIGHLIGHTED_CATEGORIES = [
   "doces-tradicionais",

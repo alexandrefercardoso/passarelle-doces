@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Banner, Category, InstagramPost, Order, Product, ProductWithCategory } from "./types";
+import type { Banner, Category, InstagramPost, Order, Product, ProductWithCategory, SiteSettings, SocialLink } from "./types";
 
 /**
  * Camada de acesso a dados da PASSARELLI DOCES.
@@ -311,16 +311,52 @@ export async function loadUserWishlist(): Promise<string[]> {
 /* Configurações do site                                               */
 /* ------------------------------------------------------------------ */
 
-export async function fetchSiteSettings() {
+export async function fetchSiteSettings(): Promise<SiteSettings> {
+  const { data, error } = await (supabase as any)
+    .from("site_settings")
+    .select("key, value")
+    .in("key", ["identity", "contact", "social", "whatsapp"]);
+
+  if (error) {
+    const { DEFAULT_SETTINGS } = await import("./constants");
+    return DEFAULT_SETTINGS;
+  }
+
+  const settings: Record<string, unknown> = {};
+  (data ?? []).forEach((row: Record<string, unknown>) => {
+    settings[row["key"] as string] = row["value"];
+  });
+
+  const identity = (settings["identity"] as Record<string, string>) ?? {};
+  const contact = (settings["contact"] as Record<string, string>) ?? {};
+  const social = (settings["social"] as SocialLink[]) ?? [];
+  const whatsapp = (settings["whatsapp"] as Record<string, string>) ?? {};
+
   const { DEFAULT_SETTINGS } = await import("./constants");
-  return DEFAULT_SETTINGS;
+
+  return {
+    name: identity["name"] ?? DEFAULT_SETTINGS.name ?? "PASSARELLI DOCES",
+    tagline: identity["tagline"] ?? DEFAULT_SETTINGS.tagline ?? "Doces especiais para momentos especiais",
+    primaryColor: identity["primaryColor"] ?? "#2a1510",
+    secondaryColor: identity["secondaryColor"] ?? "#c9a84c",
+    email: contact["email"] ?? DEFAULT_SETTINGS.email,
+    phone: contact["phone"] ?? DEFAULT_SETTINGS.phone,
+    whatsapp: contact["whatsapp"] ?? DEFAULT_SETTINGS.whatsapp,
+    address: contact["address"] ?? DEFAULT_SETTINGS.address,
+    hours: contact["hours"] ?? DEFAULT_SETTINGS.hours,
+    mapUrl: contact["mapUrl"] ?? "",
+    social,
+    whatsappNumber: whatsapp["number"] ?? DEFAULT_SETTINGS.whatsapp,
+    whatsappMessage: whatsapp["defaultMessage"] ?? "Olá! Gostaria de fazer um pedido 🍬",
+    promoMessage: DEFAULT_SETTINGS.promoMessage,
+  };
 }
 
 /* ------------------------------------------------------------------ */
 /* Admin CRUD                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function adminInsertProduct(product: Product): Promise<{ ok: boolean }> {
+export async function adminInsertProduct(product: Product): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase.from("products").insert({
     category_id: product.categoryId,
     name: product.name,
@@ -336,11 +372,11 @@ export async function adminInsertProduct(product: Product): Promise<{ ok: boolea
     sales_count: product.salesCount,
     badges: product.badges,
   });
-  if (error) return { ok: false };
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
-export async function adminUpdateProduct(product: Product): Promise<{ ok: boolean }> {
+export async function adminUpdateProduct(product: Product): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase
     .from("products")
     .update({
@@ -355,20 +391,21 @@ export async function adminUpdateProduct(product: Product): Promise<{ ok: boolea
       stock: product.stock,
       is_active: product.isActive,
       is_best_seller: product.isBestSeller,
+      sales_count: product.salesCount,
       badges: product.badges,
     })
     .eq("id", product.id);
-  if (error) return { ok: false };
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
-export async function adminDeleteProduct(id: string): Promise<{ ok: boolean }> {
+export async function adminDeleteProduct(id: string): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase.from("products").delete().eq("id", id);
-  if (error) return { ok: false };
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
-export async function adminInsertCategory(category: Category): Promise<{ ok: boolean }> {
+export async function adminInsertCategory(category: Category): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase.from("categories").insert({
     slug: category.slug,
     name: category.name,
@@ -377,11 +414,11 @@ export async function adminInsertCategory(category: Category): Promise<{ ok: boo
     sort_order: category.sortOrder,
     is_active: category.isActive,
   });
-  if (error) return { ok: false };
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
-export async function adminUpdateCategory(category: Category): Promise<{ ok: boolean }> {
+export async function adminUpdateCategory(category: Category): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase
     .from("categories")
     .update({
@@ -393,17 +430,17 @@ export async function adminUpdateCategory(category: Category): Promise<{ ok: boo
       is_active: category.isActive,
     })
     .eq("id", category.id);
-  if (error) return { ok: false };
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
-export async function adminDeleteCategory(id: string): Promise<{ ok: boolean }> {
+export async function adminDeleteCategory(id: string): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase.from("categories").delete().eq("id", id);
-  if (error) return { ok: false };
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
-export async function adminInsertBanner(banner: Banner): Promise<{ ok: boolean }> {
+export async function adminInsertBanner(banner: Banner): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase.from("banners").insert({
     title: banner.title,
     subtitle: banner.subtitle,
@@ -413,11 +450,11 @@ export async function adminInsertBanner(banner: Banner): Promise<{ ok: boolean }
     sort_order: banner.sortOrder,
     is_active: banner.isActive,
   });
-  if (error) return { ok: false };
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
-export async function adminUpdateBanner(banner: Banner): Promise<{ ok: boolean }> {
+export async function adminUpdateBanner(banner: Banner): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase
     .from("banners")
     .update({
@@ -430,13 +467,28 @@ export async function adminUpdateBanner(banner: Banner): Promise<{ ok: boolean }
       is_active: banner.isActive,
     })
     .eq("id", banner.id);
-  if (error) return { ok: false };
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 
-export async function adminDeleteBanner(id: string): Promise<{ ok: boolean }> {
+export async function adminDeleteBanner(id: string): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase.from("banners").delete().eq("id", id);
-  if (error) return { ok: false };
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+/* ------------------------------------------------------------------ */
+/* Configurações do site (Admin)                                       */
+/* ------------------------------------------------------------------ */
+
+export async function adminUpdateSiteSettings(
+  key: "identity" | "contact" | "social" | "whatsapp",
+  value: Record<string, unknown>
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await (supabase as any)
+    .from("site_settings")
+    .upsert({ key, value }, { onConflict: "key" });
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 

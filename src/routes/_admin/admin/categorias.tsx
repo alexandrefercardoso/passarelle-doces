@@ -32,9 +32,9 @@ function AdminCategoriesPage() {
   const [editing, setEditing] = useState<Category | null>(null);
   const [creating, setCreating] = useState(false);
 
-  const afterMutation = async (res: { ok: boolean }, message: string, close = true) => {
+  const afterMutation = async (res: { ok: boolean; error?: string }, message: string, close = true) => {
     if (!res.ok) {
-      toast.error(message, { description: "Não foi possível salvar. Tente novamente." });
+      toast.error(message, { description: res.error ?? "Não foi possível salvar. Tente novamente." });
       return;
     }
     toast.success(message, { description: "Salvo no banco de dados." });

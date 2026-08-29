@@ -111,12 +111,29 @@ export type Order = {
 };
 
 export type SiteSettings = {
-  whatsapp: string;
-  instagram: string;
-  facebook: string;
+  // Identidade
+  name: string;
+  tagline: string;
+  primaryColor: string;
+  secondaryColor: string;
+  // Contato
   email: string;
   phone: string;
+  whatsapp: string;
   address: string;
   hours: string;
+  mapUrl: string;
+  // Redes sociais
+  social: SocialLink[];
+  // WhatsApp flutuante
+  whatsappNumber: string;
+  whatsappMessage: string;
+  // Promo
   promoMessage: string;
+};
+
+export type SocialLink = {
+  platform: "instagram" | "facebook" | "whatsapp" | "tiktok" | "youtube" | string;
+  url: string;
+  label: string;
 };

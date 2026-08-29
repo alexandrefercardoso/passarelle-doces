@@ -26,6 +26,7 @@ import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store/troc
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
 import { Route as AdminAdminBannersRouteImport } from './routes/_admin/admin/banners'
 import { Route as AdminAdminCategoriasRouteImport } from './routes/_admin/admin/categorias'
+import { Route as AdminAdminConfiguracoesRouteImport } from './routes/_admin/admin/configuracoes'
 import { Route as AdminAdminPedidosRouteImport } from './routes/_admin/admin/pedidos'
 import { Route as AdminAdminProdutosRouteImport } from './routes/_admin/admin/produtos'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store/categoria/$slug'
@@ -118,6 +119,11 @@ const AdminAdminCategoriasRoute = AdminAdminCategoriasRouteImport.update({
   path: '/admin/categorias',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminConfiguracoesRoute = AdminAdminConfiguracoesRouteImport.update({
+  id: '/admin/configuracoes',
+  path: '/admin/configuracoes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdminPedidosRoute = AdminAdminPedidosRouteImport.update({
   id: '/admin/pedidos',
   path: '/admin/pedidos',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/admin/banners': typeof AdminAdminBannersRoute
   '/admin/categorias': typeof AdminAdminCategoriasRoute
+  '/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
   '/admin/pedidos': typeof AdminAdminPedidosRoute
   '/admin/produtos': typeof AdminAdminProdutosRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/admin/banners': typeof AdminAdminBannersRoute
   '/admin/categorias': typeof AdminAdminCategoriasRoute
+  '/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
   '/admin/pedidos': typeof AdminAdminPedidosRoute
   '/admin/produtos': typeof AdminAdminProdutosRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/_store/': typeof StoreIndexRoute
   '/_admin/admin/banners': typeof AdminAdminBannersRoute
   '/_admin/admin/categorias': typeof AdminAdminCategoriasRoute
+  '/_admin/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
   '/_admin/admin/pedidos': typeof AdminAdminPedidosRoute
   '/_admin/admin/produtos': typeof AdminAdminProdutosRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
     | '/trocas-e-devolucoes'
     | '/admin/banners'
     | '/admin/categorias'
+    | '/admin/configuracoes'
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/categoria/$slug'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/trocas-e-devolucoes'
     | '/admin/banners'
     | '/admin/categorias'
+    | '/admin/configuracoes'
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/categoria/$slug'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '/_store/'
     | '/_admin/admin/banners'
     | '/_admin/admin/categorias'
+    | '/_admin/admin/configuracoes'
     | '/_admin/admin/pedidos'
     | '/_admin/admin/produtos'
     | '/_store/categoria/$slug'
@@ -432,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminCategoriasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/configuracoes': {
+      id: '/_admin/admin/configuracoes'
+      path: '/admin/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AdminAdminConfiguracoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/admin/pedidos': {
       id: '/_admin/admin/pedidos'
       path: '/admin/pedidos'
@@ -487,6 +506,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAdminBannersRoute: typeof AdminAdminBannersRoute
   AdminAdminCategoriasRoute: typeof AdminAdminCategoriasRoute
+  AdminAdminConfiguracoesRoute: typeof AdminAdminConfiguracoesRoute
   AdminAdminPedidosRoute: typeof AdminAdminPedidosRoute
   AdminAdminProdutosRoute: typeof AdminAdminProdutosRoute
   AdminAdminIndexRoute: typeof AdminAdminIndexRoute
@@ -495,6 +515,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminBannersRoute: AdminAdminBannersRoute,
   AdminAdminCategoriasRoute: AdminAdminCategoriasRoute,
+  AdminAdminConfiguracoesRoute: AdminAdminConfiguracoesRoute,
   AdminAdminPedidosRoute: AdminAdminPedidosRoute,
   AdminAdminProdutosRoute: AdminAdminProdutosRoute,
   AdminAdminIndexRoute: AdminAdminIndexRoute,
