@@ -63,6 +63,7 @@ function AdminConfiguracoesPage() {
           address: contact["address"] ?? DEFAULT_SETTINGS.address,
           hours: contact["hours"] ?? DEFAULT_SETTINGS.hours,
           mapUrl: contact["mapUrl"] ?? "",
+          cnpj: contact["cnpj"] ?? DEFAULT_SETTINGS.cnpj,
           whatsappNumber: whatsapp["number"] ?? DEFAULT_SETTINGS.whatsappNumber,
           whatsappMessage: whatsapp["defaultMessage"] ?? DEFAULT_SETTINGS.whatsappMessage,
         });
@@ -103,6 +104,7 @@ function AdminConfiguracoesPage() {
       address: settings.address,
       hours: settings.hours,
       mapUrl: settings.mapUrl,
+      cnpj: settings.cnpj,
     });
   };
 
@@ -221,6 +223,15 @@ function AdminConfiguracoesPage() {
               value={settings.whatsapp}
               onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
               placeholder="5511999999999"
+              className="h-11 rounded-xl border border-border px-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-muted-foreground">CNPJ</label>
+            <input
+              value={settings.cnpj}
+              onChange={(e) => setSettings({ ...settings, cnpj: e.target.value })}
+              placeholder="00.000.000/0000-00"
               className="h-11 rounded-xl border border-border px-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
             />
           </div>

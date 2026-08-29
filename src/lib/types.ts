@@ -123,6 +123,7 @@ export type SiteSettings = {
   address: string;
   hours: string;
   mapUrl: string;
+  cnpj: string;
   // Redes sociais
   social: SocialLink[];
   // WhatsApp flutuante

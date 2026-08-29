@@ -12,6 +12,7 @@ import {
   fetchOrders,
   fetchProductBySlug,
   fetchProducts,
+  fetchSiteSettings,
   searchProducts,
 } from "@/lib/api";
 
@@ -100,5 +101,13 @@ export function useSearchProducts(query: string) {
     queryFn: () => searchProducts(debounced),
     enabled: debounced.trim().length >= 2,
     staleTime: 30 * 1000,
+  });
+}
+
+export function useSiteSettings() {
+  return useQuery({
+    queryKey: ["site-settings"],
+    queryFn: fetchSiteSettings,
+    staleTime: 5 * 60 * 1000,
   });
 }

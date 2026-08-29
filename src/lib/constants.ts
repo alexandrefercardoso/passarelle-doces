@@ -21,6 +21,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   address: "Rua dos Doces, 123 - Centro · São Paulo/SP",
   hours: "Segunda a sábado, das 09h às 19h",
   mapUrl: "https://www.google.com/maps/embed?pb=...",
+  cnpj: "00.000.000/0000-00",
   // Redes sociais
   social: [
     { platform: "instagram", url: "https://instagram.com/passarellidoces", label: "Instagram" },

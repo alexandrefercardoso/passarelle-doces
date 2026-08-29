@@ -3,6 +3,8 @@ import { Clock, Facebook, Instagram, Mail, MapPin, MessageCircle } from "lucide-
 import { DEFAULT_SETTINGS, SITE_NAME } from "@/lib/constants";
 import { buildWhatsAppLink } from "@/lib/format";
 import { Logo } from "./logo";
+import { useSiteSettings } from "@/hooks/use-store-data";
+import type { SocialLink } from "@/lib/types";
 
 const linksInstitucionais = [
   { label: "Quem Somos", to: "/quem-somos" },
@@ -21,6 +23,9 @@ const linksLoja = [
 ];
 
 export function StoreFooter() {
+  const { data: settings } = useSiteSettings();
+  const s = settings ?? DEFAULT_SETTINGS;
+
   return (
     <footer className="border-t border-border bg-chocolate-dark text-cream">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -32,16 +37,22 @@ export function StoreFooter() {
               qualquer momento em uma celebração.
             </p>
             <div className="mt-5 flex items-center gap-2.5">
-              <SocialLink href={buildWhatsAppLink(DEFAULT_SETTINGS.whatsapp)} label="WhatsApp">
+              <SocialLink href={buildWhatsAppLink(s.whatsappNumber)} label="WhatsApp">
                 <MessageCircle className="h-4 w-4" />
               </SocialLink>
-              <SocialLink href="https://instagram.com/passarellidoces" label="Instagram">
+              <SocialLink
+                href={s.social.find((l: SocialLink) => l.platform === "instagram")?.url ?? "https://instagram.com/passarellidoces"}
+                label="Instagram"
+              >
                 <Instagram className="h-4 w-4" />
               </SocialLink>
-              <SocialLink href="https://facebook.com/passarellidoces" label="Facebook">
+              <SocialLink
+                href={s.social.find((l: SocialLink) => l.platform === "facebook")?.url ?? "https://facebook.com/passarellidoces"}
+                label="Facebook"
+              >
                 <Facebook className="h-4 w-4" />
               </SocialLink>
-              <SocialLink href={`mailto:${DEFAULT_SETTINGS.email}`} label="E-mail">
+              <SocialLink href={`mailto:${s.email}`} label="E-mail">
                 <Mail className="h-4 w-4" />
               </SocialLink>
             </div>
@@ -88,23 +99,45 @@ export function StoreFooter() {
               Atendimento
             </h4>
             <ul className="mt-4 space-y-3 text-sm text-cream/85">
-              <li className="flex items-start gap-2.5">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
-                {DEFAULT_SETTINGS.address}
+              <li className="flex flex-col items-start gap-1">
+                <div className="flex items-start gap-2.5">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
+                  <address className="not-italic">{s.address}</address>
+                </div>
+                {s.mapUrl && (
+                  <iframe
+                    src={s.mapUrl}
+                    width="100%"
+                    height="120"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="rounded-xl mt-2"
+                    title="Localização da loja"
+                  />
+                )}
               </li>
-              <li className="flex items-start gap-2.5">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
-                {DEFAULT_SETTINGS.hours}
+              <li className="flex flex-col items-start gap-1">
+                <div className="flex items-start gap-2.5">
+                  <Clock className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
+                  <span>{s.hours}</span>
+                </div>
+                {s.cnpj && (
+                  <p className="ml-6 text-xs text-cream/60">
+                    CNPJ: {s.cnpj}
+                  </p>
+                )}
               </li>
               <li className="flex items-start gap-2.5">
                 <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
                 <a
-                  href={buildWhatsAppLink(DEFAULT_SETTINGS.whatsapp)}
+                  href={buildWhatsAppLink(s.whatsappNumber)}
                   target="_blank"
                   rel="noreferrer"
                   className="transition-colors hover:text-gold"
                 >
-                  {DEFAULT_SETTINGS.phone}
+                  {s.phone}
                 </a>
               </li>
             </ul>

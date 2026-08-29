@@ -345,6 +345,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     address: contact["address"] ?? DEFAULT_SETTINGS.address,
     hours: contact["hours"] ?? DEFAULT_SETTINGS.hours,
     mapUrl: contact["mapUrl"] ?? "",
+    cnpj: contact["cnpj"] ?? DEFAULT_SETTINGS.cnpj,
     social,
     whatsappNumber: whatsapp["number"] ?? DEFAULT_SETTINGS.whatsapp,
     whatsappMessage: whatsapp["defaultMessage"] ?? "Olá! Gostaria de fazer um pedido 🍬",

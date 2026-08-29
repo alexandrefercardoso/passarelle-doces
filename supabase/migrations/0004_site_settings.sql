@@ -35,7 +35,8 @@ insert into public.site_settings (key, value, description) values
     "whatsapp": "5511987654321",
     "address": "Rua dos Doces, 123 - Centro · São Paulo/SP",
     "hours": "Segunda a sábado, das 09h às 19h",
-    "mapUrl": "https://www.google.com/maps/embed?pb=..."
+    "mapUrl": "https://www.google.com/maps/embed?pb=...",
+    "cnpj": "00.000.000/0000-00"
   }'::jsonb, 'Informações de contato exibidas no site'),
   ('social', '[
     {"platform": "instagram", "url": "https://instagram.com/passarellidoces", "label": "Instagram"},
