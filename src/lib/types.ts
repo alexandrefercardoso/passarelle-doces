@@ -116,6 +116,10 @@ export type SiteSettings = {
   tagline: string;
   primaryColor: string;
   secondaryColor: string;
+  history: string;
+  mission: string;
+  vision: string;
+  values: ValueItem[];
   // Contato
   email: string;
   phone: string;
@@ -129,8 +133,30 @@ export type SiteSettings = {
   // WhatsApp flutuante
   whatsappNumber: string;
   whatsappMessage: string;
+  // Páginas institucionais
+  pages: PageContents;
   // Promo
   promoMessage: string;
+};
+
+export type ValueItem = {
+  title: string;
+  description: string;
+};
+
+export type PageContents = {
+  quemSomos: PageContent;
+  nossaMissao: PageContent;
+  formasPagamento: PageContent;
+  trocasDevolucoes: PageContent;
+  politicaPrivacidade: PageContent;
+  [key: string]: PageContent;
+};
+
+export type PageContent = {
+  title: string;
+  subtitle: string;
+  content: string;
 };
 
 export type SocialLink = {

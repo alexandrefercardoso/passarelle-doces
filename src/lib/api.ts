@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Banner, Category, InstagramPost, Order, Product, ProductWithCategory, SiteSettings, SocialLink } from "./types";
+import type { Banner, Category, InstagramPost, Order, Product, ProductWithCategory, SiteSettings, SocialLink, ValueItem, PageContents, PageContent } from "./types";
 
 /**
  * Camada de acesso a dados da PASSARELLI DOCES.
@@ -315,7 +315,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await (supabase as any)
     .from("site_settings")
     .select("key, value")
-    .in("key", ["identity", "contact", "social", "whatsapp"]);
+    .in("key", ["identity", "contact", "social", "whatsapp", "pages"]);
 
   if (error) {
     const { DEFAULT_SETTINGS } = await import("./constants");
@@ -327,28 +327,40 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     settings[row["key"] as string] = row["value"];
   });
 
-  const identity = (settings["identity"] as Record<string, string>) ?? {};
-  const contact = (settings["contact"] as Record<string, string>) ?? {};
+  const identity = (settings["identity"] as Record<string, unknown>) ?? {};
+  const contact = (settings["contact"] as Record<string, unknown>) ?? {};
   const social = (settings["social"] as SocialLink[]) ?? [];
-  const whatsapp = (settings["whatsapp"] as Record<string, string>) ?? {};
+  const whatsapp = (settings["whatsapp"] as Record<string, unknown>) ?? {};
+  const pages = (settings["pages"] as PageContents) ?? {};
 
   const { DEFAULT_SETTINGS } = await import("./constants");
 
   return {
-    name: identity["name"] ?? DEFAULT_SETTINGS.name ?? "PASSARELLI DOCES",
-    tagline: identity["tagline"] ?? DEFAULT_SETTINGS.tagline ?? "Doces especiais para momentos especiais",
-    primaryColor: identity["primaryColor"] ?? "#2a1510",
-    secondaryColor: identity["secondaryColor"] ?? "#c9a84c",
-    email: contact["email"] ?? DEFAULT_SETTINGS.email,
-    phone: contact["phone"] ?? DEFAULT_SETTINGS.phone,
-    whatsapp: contact["whatsapp"] ?? DEFAULT_SETTINGS.whatsapp,
-    address: contact["address"] ?? DEFAULT_SETTINGS.address,
-    hours: contact["hours"] ?? DEFAULT_SETTINGS.hours,
-    mapUrl: contact["mapUrl"] ?? "",
-    cnpj: contact["cnpj"] ?? DEFAULT_SETTINGS.cnpj,
+    name: identity["name"] as string ?? DEFAULT_SETTINGS.name ?? "PASSARELLI DOCES",
+    tagline: identity["tagline"] as string ?? DEFAULT_SETTINGS.tagline ?? "Doces especiais para momentos especiais",
+    primaryColor: identity["primaryColor"] as string ?? "#2a1510",
+    secondaryColor: identity["secondaryColor"] as string ?? "#c9a84c",
+    history: identity["history"] as string ?? DEFAULT_SETTINGS.history,
+    mission: identity["mission"] as string ?? DEFAULT_SETTINGS.mission,
+    vision: identity["vision"] as string ?? DEFAULT_SETTINGS.vision,
+    values: identity["values"] as ValueItem[] ?? DEFAULT_SETTINGS.values,
+    email: contact["email"] as string ?? DEFAULT_SETTINGS.email,
+    phone: contact["phone"] as string ?? DEFAULT_SETTINGS.phone,
+    whatsapp: contact["whatsapp"] as string ?? DEFAULT_SETTINGS.whatsapp,
+    address: contact["address"] as string ?? DEFAULT_SETTINGS.address,
+    hours: contact["hours"] as string ?? DEFAULT_SETTINGS.hours,
+    mapUrl: contact["mapUrl"] as string ?? "",
+    cnpj: contact["cnpj"] as string ?? DEFAULT_SETTINGS.cnpj,
     social,
-    whatsappNumber: whatsapp["number"] ?? DEFAULT_SETTINGS.whatsapp,
-    whatsappMessage: whatsapp["defaultMessage"] ?? "Olá! Gostaria de fazer um pedido 🍬",
+    whatsappNumber: whatsapp["number"] as string ?? DEFAULT_SETTINGS.whatsappNumber,
+    whatsappMessage: whatsapp["defaultMessage"] as string ?? DEFAULT_SETTINGS.whatsappMessage,
+    pages: {
+      quemSomos: pages["quemSomos"] as PageContent ?? DEFAULT_SETTINGS.pages.quemSomos,
+      nossaMissao: pages["nossaMissao"] as PageContent ?? DEFAULT_SETTINGS.pages.nossaMissao,
+      formasPagamento: pages["formasPagamento"] as PageContent ?? DEFAULT_SETTINGS.pages.formasPagamento,
+      trocasDevolucoes: pages["trocasDevolucoes"] as PageContent ?? DEFAULT_SETTINGS.pages.trocasDevolucoes,
+      politicaPrivacidade: pages["politicaPrivacidade"] as PageContent ?? DEFAULT_SETTINGS.pages.politicaPrivacidade,
+    },
     promoMessage: DEFAULT_SETTINGS.promoMessage,
   };
 }
@@ -483,7 +495,7 @@ export async function adminDeleteBanner(id: string): Promise<{ ok: boolean; erro
 /* ------------------------------------------------------------------ */
 
 export async function adminUpdateSiteSettings(
-  key: "identity" | "contact" | "social" | "whatsapp",
+  key: "identity" | "contact" | "social" | "whatsapp" | "pages",
   value: Record<string, unknown>
 ): Promise<{ ok: boolean; error?: string }> {
   const { error } = await (supabase as any)
