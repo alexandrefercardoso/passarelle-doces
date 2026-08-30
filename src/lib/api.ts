@@ -503,7 +503,7 @@ export async function adminUpdateSiteSettings(
   const { error } = await (supabase as any)
     .from("site_settings")
     .upsert({ key, value }, { onConflict: "key" });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: (error as any).message ?? "Erro desconhecido" };
   return { ok: true };
 }
 
@@ -520,7 +520,7 @@ export async function uploadProductImage(
   const { error: uploadError } = await supabase.storage
     .from("product-images")
     .upload(fileName, file, { upsert: true });
-  if (uploadError) return { ok: false, error: uploadError.message };
+  if (uploadError) return { ok: false, error: (uploadError as any).message ?? "Erro no upload" };
 
   const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
   return { ok: true, url: data.publicUrl ?? "" };
@@ -535,7 +535,7 @@ export async function uploadSiteImage(
   const { error: uploadError } = await supabase.storage
     .from("site-images")
     .upload(fileName, file, { upsert: true });
-  if (uploadError) return { ok: false, error: uploadError.message };
+  if (uploadError) return { ok: false, error: (uploadError as any).message ?? "Erro no upload" };
 
   const { data } = supabase.storage.from("site-images").getPublicUrl(fileName);
   return { ok: true, url: data.publicUrl ?? "" };
@@ -547,7 +547,10 @@ export async function deleteProductImage(url: string): Promise<{ ok: boolean; er
     const pathParts = urlObj.pathname.split("/");
     const fileName = pathParts[pathParts.length - 1];
     const { error } = await supabase.storage.from("product-images").remove([fileName]);
-    if (error) return { ok: false, error: error.message ?? "Erro desconhecido" };
+    if (error) {
+      const msg = (error as any).message;
+      return { ok: false, error: msg ?? "Erro desconhecido" };
+    }
     return { ok: true };
   } catch {
     return { ok: false, error: "URL inválida" };
@@ -560,7 +563,10 @@ export async function deleteSiteImage(url: string): Promise<{ ok: boolean; error
     const pathParts = urlObj.pathname.split("/");
     const fileName = pathParts.slice(pathParts.indexOf("site-images") + 1).join("/");
     const { error } = await supabase.storage.from("site-images").remove([fileName]);
-    if (error) return { ok: false, error: error.message ?? "Erro desconhecido" };
+    if (error) {
+      const msg = (error as any).message;
+      return { ok: false, error: msg ?? "Erro desconhecido" };
+    }
     return { ok: true };
   } catch {
     return { ok: false, error: "URL inválida" };
