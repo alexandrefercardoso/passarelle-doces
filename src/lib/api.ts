@@ -507,6 +507,66 @@ export async function adminUpdateSiteSettings(
   return { ok: true };
 }
 
+/* ------------------------------------------------------------------ */
+/* Upload de imagens (Supabase Storage)                                 */
+/* ------------------------------------------------------------------ */
+
+export async function uploadProductImage(
+  file: File,
+  productId: string
+): Promise<{ ok: boolean; url?: string; error?: string }> {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const fileName = `${productId}-${Date.now()}.${ext}`;
+  const { error: uploadError } = await supabase.storage
+    .from("product-images")
+    .upload(fileName, file, { upsert: true });
+  if (uploadError) return { ok: false, error: uploadError.message };
+
+  const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
+  return { ok: true, url: data.publicUrl ?? "" };
+}
+
+export async function uploadSiteImage(
+  file: File,
+  folder: "banners" | "general" = "general"
+): Promise<{ ok: boolean; url?: string; error?: string }> {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const fileName = `${folder}/${Date.now()}.${ext}`;
+  const { error: uploadError } = await supabase.storage
+    .from("site-images")
+    .upload(fileName, file, { upsert: true });
+  if (uploadError) return { ok: false, error: uploadError.message };
+
+  const { data } = supabase.storage.from("site-images").getPublicUrl(fileName);
+  return { ok: true, url: data.publicUrl ?? "" };
+}
+
+export async function deleteProductImage(url: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split("/");
+    const fileName = pathParts[pathParts.length - 1];
+    const { error } = await supabase.storage.from("product-images").remove([fileName]);
+    if (error) return { ok: false, error: error.message ?? "Erro desconhecido" };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "URL inválida" };
+  }
+}
+
+export async function deleteSiteImage(url: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split("/");
+    const fileName = pathParts.slice(pathParts.indexOf("site-images") + 1).join("/");
+    const { error } = await supabase.storage.from("site-images").remove([fileName]);
+    if (error) return { ok: false, error: error.message ?? "Erro desconhecido" };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "URL inválida" };
+  }
+}
+
 export async function adminFetchAll(): Promise<{
   products: Product[];
   categories: Category[];
