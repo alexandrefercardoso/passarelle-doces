@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as StoreRouteImport } from './routes/_store'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as StoreIndexRouteImport } from './routes/_store/index'
 import { Route as StoreCarrinhoRouteImport } from './routes/_store/carrinho'
 import { Route as StoreCheckoutRouteImport } from './routes/_store/checkout'
@@ -41,6 +42,11 @@ const AdminRoute = AdminRouteImport.update({
 } as any)
 const StoreRoute = StoreRouteImport.update({
   id: '/_store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoreIndexRoute = StoreIndexRouteImport.update({
@@ -162,6 +168,7 @@ const StoreProdutosSlugRoute = StoreProdutosSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/carrinho': typeof StoreCarrinhoRoute
   '/checkout': typeof StoreCheckoutRoute
   '/conta': typeof StoreContaRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof StoreIndexRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/carrinho': typeof StoreCarrinhoRoute
   '/checkout': typeof StoreCheckoutRoute
   '/conta': typeof StoreContaRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_admin': typeof AdminRouteWithChildren
   '/_store': typeof StoreRouteWithChildren
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/_store/carrinho': typeof StoreCarrinhoRoute
   '/_store/checkout': typeof StoreCheckoutRoute
   '/_store/conta': typeof StoreContaRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/redefinir-senha'
     | '/carrinho'
     | '/checkout'
     | '/conta'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/redefinir-senha'
     | '/carrinho'
     | '/checkout'
     | '/conta'
@@ -293,6 +304,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_admin'
     | '/_store'
+    | '/redefinir-senha'
     | '/_store/carrinho'
     | '/_store/checkout'
     | '/_store/conta'
@@ -321,6 +333,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   StoreRoute: typeof StoreRouteWithChildren
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -337,6 +350,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof StoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_store/': {
@@ -568,6 +588,7 @@ const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   StoreRoute: StoreRouteWithChildren,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -498,7 +498,7 @@ export async function adminDeleteBanner(id: string): Promise<{ ok: boolean; erro
 
 export async function adminUpdateSiteSettings(
   key: "identity" | "contact" | "social" | "whatsapp" | "pages",
-  value: Record<string, unknown>
+  value: unknown
 ): Promise<{ ok: boolean; error?: string }> {
   const { error } = await (supabase as any)
     .from("site_settings")

@@ -160,6 +160,7 @@ function AuthForm({ setUser }: { setUser: (u: { email: string; name: string }) =
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -198,6 +199,29 @@ function AuthForm({ setUser }: { setUser: (u: { email: string; name: string }) =
       toast.error("Ops!", { description: message });
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleForgot = async () => {
+    if (!email) {
+      toast.error("Informe seu e-mail", {
+        description: "Preencha o campo de e-mail para receber o link de redefinição.",
+      });
+      return;
+    }
+    setSendingReset(true);
+    try {
+      const redirectTo = `${window.location.origin}/redefinir-senha`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) throw error;
+      toast.success("Link enviado!", {
+        description: `Verifique sua caixa de entrada em ${email}.`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Não foi possível enviar o link.";
+      toast.error("Ops!", { description: message });
+    } finally {
+      setSendingReset(false);
     }
   };
 
@@ -262,6 +286,19 @@ function AuthForm({ setUser }: { setUser: (u: { email: string; name: string }) =
             className="h-11 rounded-xl border border-border px-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
           />
         </div>
+
+        {mode === "login" && (
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={() => void handleForgot()}
+              disabled={sendingReset}
+              className="text-xs font-semibold text-gold-dark hover:text-chocolate-dark disabled:opacity-60"
+            >
+              {sendingReset ? "Enviando link..." : "Esqueci minha senha"}
+            </button>
+          </div>
+        )}
 
         <Button
           type="submit"

@@ -47,6 +47,8 @@ function AdminLoginForm({ onSuccess }: { onSuccess: (email: string) => void }) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  const [sendingReset, setSendingReset] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
@@ -66,6 +68,31 @@ function AdminLoginForm({ onSuccess }: { onSuccess: (email: string) => void }) {
       toast.error("Ops!", { description: msg });
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleForgot = async () => {
+    if (!email) {
+      toast.error("Informe seu e-mail", {
+        description: "Preencha o campo de e-mail para receber o link de redefinição.",
+      });
+      return;
+    }
+    setSendingReset(true);
+    try {
+      const redirectTo = `${window.location.origin}/redefinir-senha`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+      if (error) throw error;
+      toast.success("Link enviado!", {
+        description: `Verifique sua caixa de entrada em ${email}.`,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Não foi possível enviar o link";
+      toast.error("Ops!", { description: msg });
+    } finally {
+      setSendingReset(false);
     }
   };
 
@@ -118,6 +145,17 @@ function AdminLoginForm({ onSuccess }: { onSuccess: (email: string) => void }) {
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
+        </div>
+
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => void handleForgot()}
+            disabled={sendingReset}
+            className="text-xs font-semibold text-gold-dark hover:text-chocolate-dark disabled:opacity-60"
+          >
+            {sendingReset ? "Enviando link..." : "Esqueci minha senha"}
+          </button>
         </div>
 
         <button
@@ -281,11 +319,7 @@ function AdminLayout() {
           </nav>
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
-            {!isAdmin ? (
-              <AdminLoginForm onSuccess={(email) => setUser({ email })} />
-            ) : (
-              <Outlet />
-            )}
+            {!isAdmin ? <AdminLoginForm onSuccess={(email) => setUser({ email })} /> : <Outlet />}
           </main>
         </div>
       </div>
