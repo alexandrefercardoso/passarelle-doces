@@ -73,6 +73,8 @@ function AdminConfiguracoesPage() {
           history: identity["history"] as string ?? DEFAULT_SETTINGS.history,
           mission: identity["mission"] as string ?? DEFAULT_SETTINGS.mission,
           vision: identity["vision"] as string ?? DEFAULT_SETTINGS.vision,
+          productsPageBanner: identity["productsPageBanner"] as string ?? DEFAULT_SETTINGS.productsPageBanner,
+          productsPageBannerAlt: identity["productsPageBannerAlt"] as string ?? DEFAULT_SETTINGS.productsPageBannerAlt,
           email: contact["email"] as string ?? DEFAULT_SETTINGS.email,
           phone: contact["phone"] as string ?? DEFAULT_SETTINGS.phone,
           whatsapp: contact["whatsapp"] as string ?? DEFAULT_SETTINGS.whatsapp,
@@ -121,6 +123,8 @@ function AdminConfiguracoesPage() {
       mission: settings.mission,
       vision: settings.vision,
       values,
+      productsPageBanner: settings.productsPageBanner,
+      productsPageBannerAlt: settings.productsPageBannerAlt,
     });
   };
 
@@ -273,6 +277,30 @@ function AdminConfiguracoesPage() {
             rows={3}
             className="mt-1.5 w-full h-24 rounded-xl border border-border px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30 resize-none"
             placeholder="Qual é a visão de futuro..."
+          />
+        </div>
+
+        {/* Banner da Página de Produtos */}
+        <div className="mt-6">
+          <label className="text-xs font-medium text-muted-foreground">Banner da página de produtos (URL da imagem)</label>
+          <input
+            value={settings.productsPageBanner}
+            onChange={(e) => setSettings({ ...settings, productsPageBanner: e.target.value })}
+            placeholder="https://exemplo.com/banner-produtos.jpg"
+            className="mt-1.5 w-full h-11 rounded-xl border border-border px-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Deixe vazio para não exibir banner. Imagem recomendada: 1200x400px
+          </p>
+        </div>
+
+        <div className="mt-6">
+          <label className="text-xs font-medium text-muted-foreground">Texto alternativo do banner (acessibilidade)</label>
+          <input
+            value={settings.productsPageBannerAlt}
+            onChange={(e) => setSettings({ ...settings, productsPageBannerAlt: e.target.value })}
+            placeholder="Nossos doces artesanais"
+            className="mt-1.5 w-full h-11 rounded-xl border border-border px-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
           />
         </div>
 

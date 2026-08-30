@@ -120,6 +120,8 @@ export type SiteSettings = {
   mission: string;
   vision: string;
   values: ValueItem[];
+  productsPageBanner: string;
+  productsPageBannerAlt: string;
   // Contato
   email: string;
   phone: string;

@@ -38,8 +38,10 @@ insert into public.site_settings (key, value, description) values
       {"title": "Qualidade", "description": "Ingredientes selecionados e fornecedores de confiança."},
       {"title": "Carinho", "description": "Do preparo à entrega, tudo feito com amor."},
       {"title": "Inovação", "description": "Sabores únicos que surpreendem e encantam."}
-    ]
-  }'::jsonb, 'Identidade visual, história, missão, visão e valores da marca'),
+    ],
+    "productsPageBanner": "",
+    "productsPageBannerAlt": "Nossos doces artesanais"
+  }'::jsonb, 'Identidade visual, história, missão, visão, valores e banner da página de produtos'),
   ('contact', '{
     "email": "contato@passarellidoces.com.br",
     "phone": "(11) 98765-4321",

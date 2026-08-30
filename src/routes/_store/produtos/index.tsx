@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronDown, PackageSearch, SlidersHorizontal } from "lucide-react";
-import { useCategories, useProducts } from "@/hooks/use-store-data";
+import { useCategories, useProducts, useSiteSettings } from "@/hooks/use-store-data";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/store/empty-state";
 import { ErrorState } from "@/components/store/error-state";
@@ -51,6 +51,7 @@ function ProductsPage() {
   const [sort, setSort] = useState<SortOption>("relevancia");
   const products = useProducts();
   const categories = useCategories();
+  const { data: settings } = useSiteSettings();
 
   const visibleCategories = (categories.data ?? []).filter((c) => c.isActive);
 
@@ -108,6 +109,17 @@ function ProductsPage() {
             : "Doces artesanais feitos com carinho para adoçar o seu dia."}
         </p>
       </div>
+
+      {/* Banner da página de produtos (se configurado) */}
+      {settings?.productsPageBanner && (
+        <div className="mt-6 rounded-2xl overflow-hidden">
+          <img
+            src={settings.productsPageBanner}
+            alt={settings.productsPageBannerAlt || "Banner da página de produtos"}
+            className="w-full h-auto object-cover max-h-[300px]"
+          />
+        </div>
+      )}
 
       {/* Filtro por categoria */}
       <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto pb-1">

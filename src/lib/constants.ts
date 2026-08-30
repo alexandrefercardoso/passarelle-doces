@@ -23,6 +23,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     { title: "Carinho", description: "Do preparo à entrega, tudo feito com amor." },
     { title: "Inovação", description: "Sabores únicos que surpreendem e encantam." },
   ],
+  productsPageBanner: "",
+  productsPageBannerAlt: "Nossos doces artesanais",
   // Contato
   email: "contato@passarellidoces.com.br",
   phone: "(11) 98765-4321",

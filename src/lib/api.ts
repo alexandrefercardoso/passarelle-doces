@@ -344,6 +344,8 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     mission: identity["mission"] as string ?? DEFAULT_SETTINGS.mission,
     vision: identity["vision"] as string ?? DEFAULT_SETTINGS.vision,
     values: identity["values"] as ValueItem[] ?? DEFAULT_SETTINGS.values,
+    productsPageBanner: identity["productsPageBanner"] as string ?? DEFAULT_SETTINGS.productsPageBanner,
+    productsPageBannerAlt: identity["productsPageBannerAlt"] as string ?? DEFAULT_SETTINGS.productsPageBannerAlt,
     email: contact["email"] as string ?? DEFAULT_SETTINGS.email,
     phone: contact["phone"] as string ?? DEFAULT_SETTINGS.phone,
     whatsapp: contact["whatsapp"] as string ?? DEFAULT_SETTINGS.whatsapp,
