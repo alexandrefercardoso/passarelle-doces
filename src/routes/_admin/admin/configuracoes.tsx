@@ -122,6 +122,37 @@ function AdminSettingsPage() {
     setSettings({ ...settings, [key]: value });
   };
 
+  const persistIdentity = async (next: SiteSettings) => {
+    const res = await adminUpdateSiteSettings("identity", {
+      name: next.name,
+      tagline: next.tagline,
+      primaryColor: next.primaryColor,
+      secondaryColor: next.secondaryColor,
+      history: next.history,
+      mission: next.mission,
+      vision: next.vision,
+      values: next.values,
+      productsPageBanner: next.productsPageBanner,
+      productsPageBannerAlt: next.productsPageBannerAlt,
+    });
+    if (!res.ok) {
+      toast.error("Não foi possível salvar o banner", {
+        description: res.error ?? "Tente novamente.",
+      });
+      return;
+    }
+    toast.success("Banner salvo!", {
+      description: "A imagem foi gravada e já aparece na página de produtos.",
+    });
+  };
+
+  const handleBannerChange = (url: string) => {
+    if (!settings) return;
+    const next = { ...settings, productsPageBanner: url };
+    setSettings(next);
+    void persistIdentity(next);
+  };
+
   if (loading) {
     return <div className="h-96 animate-pulse rounded-2xl bg-muted" />;
   }
@@ -174,7 +205,7 @@ function AdminSettingsPage() {
         </TabsList>
 
         <TabsContent value="identity" className="mt-4 space-y-4">
-          <IdentityCard settings={settings} update={update} />
+          <IdentityCard settings={settings} update={update} onBannerChange={handleBannerChange} />
         </TabsContent>
 
         <TabsContent value="contact" className="mt-4 space-y-4">
@@ -252,7 +283,15 @@ function Field({
   );
 }
 
-function IdentityCard({ settings, update }: { settings: SiteSettings; update: SettingsUpdater }) {
+function IdentityCard({
+  settings,
+  update,
+  onBannerChange,
+}: {
+  settings: SiteSettings;
+  update: SettingsUpdater;
+  onBannerChange: (url: string) => void;
+}) {
   const setValue = (i: number, key: "title" | "description", v: string) => {
     const values = settings.values.map((item, idx) => (idx === i ? { ...item, [key]: v } : item));
     update("values", values as ValueItem[]);
@@ -374,7 +413,7 @@ function IdentityCard({ settings, update }: { settings: SiteSettings; update: Se
           label="Foto do banner"
           value={settings.productsPageBanner}
           alt={settings.productsPageBannerAlt}
-          onChangeUrl={(url) => update("productsPageBanner", url)}
+          onChangeUrl={onBannerChange}
           onChangeAlt={(alt) => update("productsPageBannerAlt", alt)}
         />
         <Field
@@ -401,7 +440,10 @@ function ImageUploadField({
   onChangeAlt: (alt: string) => void;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string>("");
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const shownValue = localPreview || value;
 
   const handleFile = async (file: File) => {
     setUploading(true);
@@ -420,6 +462,7 @@ function ImageUploadField({
         });
         return;
       }
+      setLocalPreview(url);
       onChangeUrl(url);
       onChangeAlt(file.name.replace(/\.[^.]+$/, "") || alt);
       toast.success(url.startsWith("data:") ? "Imagem salva localmente!" : "Imagem enviada!", {
@@ -433,13 +476,21 @@ function ImageUploadField({
     }
   };
 
+  const handleRemove = () => {
+    setLocalPreview("");
+    onChangeUrl("");
+    toast.success("Imagem removida", {
+      description: "O banner foi removido. Clique em Salvar alterações para confirmar.",
+    });
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
       <div className="flex items-start gap-3">
         <div className="relative flex h-32 w-48 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-muted">
-          {value ? (
-            <img src={value} alt={alt} className="h-full w-full object-cover" />
+          {shownValue ? (
+            <img src={shownValue} alt={alt} className="h-full w-full object-cover" />
           ) : (
             <div className="flex flex-col items-center gap-1 text-muted-foreground">
               <ImagePlus className="h-6 w-6" />
@@ -464,13 +515,13 @@ function ImageUploadField({
             <Upload className="h-4 w-4" />
             {uploading ? "Enviando..." : "Enviar foto"}
           </Button>
-          {value && (
+          {shownValue && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="rounded-full text-muted-foreground hover:text-red-500"
-              onClick={() => onChangeUrl("")}
+              onClick={handleRemove}
             >
               <X className="h-4 w-4" />
               Remover

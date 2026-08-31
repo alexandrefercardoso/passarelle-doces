@@ -6,6 +6,7 @@ import { MessageCircle, ShieldCheck } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { DEFAULT_SETTINGS } from "@/lib/constants";
 import { buildWhatsAppLink } from "@/lib/format";
+import { useSiteSettings } from "@/hooks/use-store-data";
 import { CartDrawer } from "./cart-drawer";
 import { CategoryNav } from "./category-nav";
 import { Header } from "./header";
@@ -15,11 +16,25 @@ import { StoreFooter } from "./store-footer";
 
 export function StoreLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: settings } = useSiteSettings();
+  const banner = settings?.productsPageBanner;
 
   return (
     <div className="flex min-h-screen flex-col">
       <TopBar />
       <Header onOpenMenu={() => setMenuOpen(true)} />
+
+      {/* Banner abaixo do header (rola junto com a página) */}
+      {banner && (
+        <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6">
+          <img
+            src={banner}
+            alt={settings?.productsPageBannerAlt || "Banner da página de produtos"}
+            className="h-72 w-full overflow-hidden rounded-2xl object-cover object-center sm:h-80 lg:h-96"
+          />
+        </div>
+      )}
+
       <CategoryNav />
 
       <main className="flex-1">
