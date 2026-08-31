@@ -1,18 +1,8 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ArrowUpRight,
-  ImagePlus,
-  Loader2,
-  Pencil,
-  Plus,
-  Tags,
-  Trash2,
-  Upload,
-  X,
-} from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { ArrowUpRight, Loader2, Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,10 +25,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAdminData } from "@/hooks/use-admin-data";
-import { adminDeleteProduct, adminInsertProduct, adminUpdateProduct, uploadImage } from "@/lib/api";
+import { ImagePicker } from "@/components/admin/image-picker";
+import { adminDeleteProduct, adminInsertProduct, adminUpdateProduct } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { formatCurrency, slugify } from "@/lib/format";
-import { fileToResizedDataUrl } from "@/lib/image";
 import type { Product } from "@/lib/types";
 
 export const Route = createFileRoute("/_admin/admin/produtos")({
@@ -249,37 +239,9 @@ function ProductForm({
     badges: initial?.badges ?? [],
   });
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const set = <K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
-
-  const handleImage = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setUploading(true);
-    try {
-      const id = initial?.id ?? "new";
-      const res = await uploadImage(file, { kind: "product", productId: id, folder: "produtos" });
-      if (res?.ok && res.url) {
-        set("imageUrl", res.url);
-      } else {
-        const fallback = await fileToResizedDataUrl(file);
-        set("imageUrl", fallback);
-        toast.info("Imagem salva localmente (base64)");
-      }
-      toast.success("Imagem enviada!", {
-        description: "Use o botão Salvar para confirmar as alterações.",
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erro ao enviar imagem";
-      toast.error("Ops!", { description: msg });
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -384,55 +346,15 @@ function ProductForm({
               />
             </Field>
           </div>
-          <Field label="Imagem" className="sm:col-span-2">
-            <div className="flex items-center gap-3">
-              <div className="relative flex h-20 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-muted">
-                {form.imageUrl ? (
-                  <img src={form.imageUrl} alt="Produto" className="h-full w-full object-cover" />
-                ) : (
-                  <ImagePlus className="h-6 w-6 text-muted-foreground" aria-hidden />
-                )}
-                {uploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                    <Loader2 className="h-6 w-6 animate-spin text-white" />
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full"
-                  disabled={uploading}
-                  onClick={() => inputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4" />
-                  {uploading ? "Enviando..." : "Enviar foto"}
-                </Button>
-                {form.imageUrl && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-full text-muted-foreground hover:text-red-500"
-                    onClick={() => set("imageUrl", "")}
-                  >
-                    <X className="h-4 w-4" />
-                    Remover
-                  </Button>
-                )}
-                <input
-                  ref={inputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploading}
-                  onChange={handleImage}
-                />
-              </div>
-            </div>
-          </Field>
+          <div className="sm:col-span-2">
+            <ImagePicker
+              label="Imagem do produto"
+              value={form.imageUrl}
+              onChange={(url) => set("imageUrl", url)}
+              folder="produtos"
+              kind="product"
+            />
+          </div>
           <Field label="Descrição" className="sm:col-span-2">
             <Textarea
               rows={3}

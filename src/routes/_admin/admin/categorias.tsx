@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useAdminData } from "@/hooks/use-admin-data";
+import { ImagePicker } from "@/components/admin/image-picker";
 import { adminDeleteCategory, adminInsertCategory, adminUpdateCategory } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { slugify } from "@/lib/format";
@@ -32,9 +33,15 @@ function AdminCategoriesPage() {
   const [editing, setEditing] = useState<Category | null>(null);
   const [creating, setCreating] = useState(false);
 
-  const afterMutation = async (res: { ok: boolean; error?: string }, message: string, close = true) => {
+  const afterMutation = async (
+    res: { ok: boolean; error?: string },
+    message: string,
+    close = true,
+  ) => {
     if (!res.ok) {
-      toast.error(message, { description: res.error ?? "Não foi possível salvar. Tente novamente." });
+      toast.error(message, {
+        description: res.error ?? "Não foi possível salvar. Tente novamente.",
+      });
       return;
     }
     toast.success(message, { description: "Salvo no banco de dados." });
@@ -215,13 +222,14 @@ function CategoryForm({
               />
             </Field>
           </div>
-          <Field label="Imagem (URL)" className="sm:col-span-2">
-            <Input
+          <div className="sm:col-span-2">
+            <ImagePicker
+              label="Imagem da categoria"
               value={form.imageUrl}
-              onChange={(e) => set("imageUrl", e.target.value)}
-              placeholder="https://.../categoria.png"
+              onChange={(url) => set("imageUrl", url)}
+              folder="categorias"
             />
-          </Field>
+          </div>
           <Field label="Descrição" className="sm:col-span-2">
             <Textarea
               rows={2}

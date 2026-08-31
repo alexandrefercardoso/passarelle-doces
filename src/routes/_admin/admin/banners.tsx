@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/store/empty-state";
 import { ProductImage } from "@/components/store/product-image";
+import { ImagePicker } from "@/components/admin/image-picker";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { adminDeleteBanner, adminInsertBanner, adminUpdateBanner } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,9 @@ function AdminBannersPage() {
 
   const afterMutation = async (res: { ok: boolean; error?: string }, message: string) => {
     if (!res.ok) {
-      toast.error(message, { description: res.error ?? "Não foi possível salvar. Tente novamente." });
+      toast.error(message, {
+        description: res.error ?? "Não foi possível salvar. Tente novamente.",
+      });
       return;
     }
     toast.success(message, { description: "Salvo no banco de dados." });
@@ -232,13 +235,12 @@ function BannerForm({
           <Field label="Subtítulo">
             <Input value={form.subtitle} onChange={(e) => set("subtitle", e.target.value)} />
           </Field>
-          <Field label="Imagem (URL)">
-            <Input
-              value={form.imageUrl}
-              onChange={(e) => set("imageUrl", e.target.value)}
-              placeholder="https://.../banner.png"
-            />
-          </Field>
+          <ImagePicker
+            label="Imagem do banner"
+            value={form.imageUrl}
+            onChange={(url) => set("imageUrl", url)}
+            folder="banners"
+          />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Texto do botão">
               <Input value={form.buttonText} onChange={(e) => set("buttonText", e.target.value)} />
