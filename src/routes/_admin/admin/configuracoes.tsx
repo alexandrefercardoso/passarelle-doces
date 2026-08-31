@@ -6,6 +6,7 @@ import {
   Eye,
   EyeOff,
   Heart,
+  Image as ImageIcon,
   ImagePlus,
   Loader2,
   MessageCircle,
@@ -25,8 +26,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchSiteSettings, adminUpdateSiteSettings, uploadSiteImage } from "@/lib/api";
+import { fetchSiteSettings, adminUpdateSiteSettings, uploadImage } from "@/lib/api";
 import { DEFAULT_SETTINGS } from "@/lib/constants";
+import { fileToResizedDataUrl } from "@/lib/image";
 import type { SiteSettings, SocialLink, ValueItem } from "@/lib/types";
 
 export const Route = createFileRoute("/_admin/admin/configuracoes")({
@@ -37,7 +39,9 @@ function AdminSettingsPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"identity" | "contact" | "social">("identity");
+  const [activeTab, setActiveTab] = useState<"identity" | "contact" | "social" | "images">(
+    "identity",
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -95,6 +99,8 @@ function AdminSettingsPage() {
             defaultMessage: settings.whatsappMessage,
           }),
         );
+      } else if (activeTab === "images") {
+        results.push(await adminUpdateSiteSettings("imageProvider", settings.imageProvider));
       } else {
         results.push(await adminUpdateSiteSettings("social", settings.social));
       }
@@ -189,10 +195,10 @@ function AdminSettingsPage() {
 
       <Tabs
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as "identity" | "contact" | "social")}
+        onValueChange={(v) => setActiveTab(v as "identity" | "contact" | "social" | "images")}
         className="mt-6"
       >
-        <TabsList className="grid w-full max-w-md grid-cols-3">
+        <TabsList className="grid w-full max-w-lg grid-cols-4">
           <TabsTrigger value="identity">
             <User className="h-4 w-4" /> Identidade
           </TabsTrigger>
@@ -201,6 +207,9 @@ function AdminSettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="social">
             <Share2 className="h-4 w-4" /> Redes
+          </TabsTrigger>
+          <TabsTrigger value="images">
+            <ImageIcon className="h-4 w-4" /> Imagens
           </TabsTrigger>
         </TabsList>
 
@@ -215,6 +224,10 @@ function AdminSettingsPage() {
 
         <TabsContent value="social" className="mt-4 space-y-4">
           <SocialCard settings={settings} update={update} />
+        </TabsContent>
+
+        <TabsContent value="images" className="mt-4 space-y-4">
+          <ImageProviderCard settings={settings} update={update} />
         </TabsContent>
       </Tabs>
     </div>
@@ -449,7 +462,7 @@ function ImageUploadField({
     setUploading(true);
     try {
       let url = "";
-      const res = await uploadSiteImage(file, "banners").catch(() => null);
+      const res = await uploadImage(file, { kind: "site", folder: "banners" });
       if (res?.ok && res.url) {
         url = res.url;
       } else {
@@ -695,32 +708,49 @@ function SocialCard({ settings, update }: { settings: SiteSettings; update: Sett
   );
 }
 
-async function fileToResizedDataUrl(file: File): Promise<string> {
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error("Falha ao ler o arquivo"));
-    reader.readAsDataURL(file);
-  });
+function ImageProviderCard({
+  settings,
+  update,
+}: {
+  settings: SiteSettings;
+  update: SettingsUpdater;
+}) {
+  const setProvider = (key: keyof SiteSettings["imageProvider"], value: string) => {
+    update("imageProvider", { ...settings.imageProvider, [key]: value });
+  };
 
-  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Falha ao carregar a imagem"));
-    image.src = dataUrl;
-  });
+  return (
+    <SectionCard
+      icon={<ImageIcon className="h-5 w-5 text-gold-dark" />}
+      title="Armazenamento de imagens"
+      description="Configure o Cloudinary para subir as fotos de produtos e banners sem ocupar o banco do Supabase."
+    >
+      <p className="rounded-2xl bg-cream/60 p-4 text-sm text-muted-foreground">
+        Se os campos abaixo estiverem preenchidos, as fotos vão direto para o Cloudinary (escalável
+        para mais de 1000 imagens). Se deixar vazio, elas usam o armazenamento do Supabase. Para
+        obter os dados: no painel do Cloudinary, copie o <strong>Cloud name</strong> (Dashboard) e o{" "}
+        <strong>Upload preset</strong> (Settings → Upload → Upload presets → crie um como{" "}
+        <em>unsigned</em>).
+      </p>
 
-  const MAX_WIDTH = 1400;
-  const scale = img.naturalWidth > MAX_WIDTH ? MAX_WIDTH / img.naturalWidth : 1;
-  const width = Math.round((img.naturalWidth || 1) * scale);
-  const height = Math.round((img.naturalHeight || 1) * scale);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas indisponível");
-  ctx.drawImage(img, 0, 0, width, height);
-
-  return canvas.toDataURL("image/jpeg", 0.82);
+      <Field
+        label="Cloud name"
+        value={settings.imageProvider.cloudName}
+        onChange={(v) => setProvider("cloudName", v)}
+        placeholder="Ex: dsp1kqxyz"
+      />
+      <Field
+        label="Upload preset (unsigned)"
+        value={settings.imageProvider.uploadPreset}
+        onChange={(v) => setProvider("uploadPreset", v)}
+        placeholder="Ex: loja_doces"
+      />
+      <Field
+        label="Pasta (opcional)"
+        value={settings.imageProvider.folder}
+        onChange={(v) => setProvider("folder", v)}
+        placeholder="Ex: produtos"
+      />
+    </SectionCard>
+  );
 }

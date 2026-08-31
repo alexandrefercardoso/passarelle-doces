@@ -139,6 +139,14 @@ export type SiteSettings = {
   pages: PageContents;
   // Promo
   promoMessage: string;
+  // Armazenamento de imagens (provedor externo)
+  imageProvider: ImageProvider;
+};
+
+export type ImageProvider = {
+  cloudName: string;
+  uploadPreset: string;
+  folder: string;
 };
 
 export type ValueItem = {

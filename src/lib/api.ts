@@ -1,5 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Banner, Category, InstagramPost, Order, Product, ProductWithCategory, SiteSettings, SocialLink, ValueItem, PageContents, PageContent } from "./types";
+import type {
+  Banner,
+  Category,
+  ImageProvider,
+  InstagramPost,
+  Order,
+  Product,
+  ProductWithCategory,
+  SiteSettings,
+  SocialLink,
+  ValueItem,
+  PageContents,
+  PageContent,
+} from "./types";
 
 /**
  * Camada de acesso a dados da PASSARELLI DOCES.
@@ -315,7 +328,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await (supabase as any)
     .from("site_settings")
     .select("key, value")
-    .in("key", ["identity", "contact", "social", "whatsapp", "pages"]);
+    .in("key", ["identity", "contact", "social", "whatsapp", "pages", "imageProvider"]);
 
   if (error) {
     const { DEFAULT_SETTINGS } = await import("./constants");
@@ -332,38 +345,48 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
   const social = (settings["social"] as SocialLink[]) ?? [];
   const whatsapp = (settings["whatsapp"] as Record<string, unknown>) ?? {};
   const pages = (settings["pages"] as PageContents) ?? {};
-
   const { DEFAULT_SETTINGS } = await import("./constants");
+  const imageProvider =
+    (settings["imageProvider"] as ImageProvider) ?? DEFAULT_SETTINGS.imageProvider;
 
   return {
-    name: identity["name"] as string ?? DEFAULT_SETTINGS.name ?? "PASSARELLI DOCES",
-    tagline: identity["tagline"] as string ?? DEFAULT_SETTINGS.tagline ?? "Doces especiais para momentos especiais",
-    primaryColor: identity["primaryColor"] as string ?? "#2a1510",
-    secondaryColor: identity["secondaryColor"] as string ?? "#c9a84c",
-    history: identity["history"] as string ?? DEFAULT_SETTINGS.history,
-    mission: identity["mission"] as string ?? DEFAULT_SETTINGS.mission,
-    vision: identity["vision"] as string ?? DEFAULT_SETTINGS.vision,
-    values: identity["values"] as ValueItem[] ?? DEFAULT_SETTINGS.values,
-    productsPageBanner: identity["productsPageBanner"] as string ?? DEFAULT_SETTINGS.productsPageBanner,
-    productsPageBannerAlt: identity["productsPageBannerAlt"] as string ?? DEFAULT_SETTINGS.productsPageBannerAlt,
-    email: contact["email"] as string ?? DEFAULT_SETTINGS.email,
-    phone: contact["phone"] as string ?? DEFAULT_SETTINGS.phone,
-    whatsapp: contact["whatsapp"] as string ?? DEFAULT_SETTINGS.whatsapp,
-    address: contact["address"] as string ?? DEFAULT_SETTINGS.address,
-    hours: contact["hours"] as string ?? DEFAULT_SETTINGS.hours,
-    mapUrl: contact["mapUrl"] as string ?? "",
-    cnpj: contact["cnpj"] as string ?? DEFAULT_SETTINGS.cnpj,
+    name: (identity["name"] as string) ?? DEFAULT_SETTINGS.name ?? "PASSARELLI DOCES",
+    tagline:
+      (identity["tagline"] as string) ??
+      DEFAULT_SETTINGS.tagline ??
+      "Doces especiais para momentos especiais",
+    primaryColor: (identity["primaryColor"] as string) ?? "#2a1510",
+    secondaryColor: (identity["secondaryColor"] as string) ?? "#c9a84c",
+    history: (identity["history"] as string) ?? DEFAULT_SETTINGS.history,
+    mission: (identity["mission"] as string) ?? DEFAULT_SETTINGS.mission,
+    vision: (identity["vision"] as string) ?? DEFAULT_SETTINGS.vision,
+    values: (identity["values"] as ValueItem[]) ?? DEFAULT_SETTINGS.values,
+    productsPageBanner:
+      (identity["productsPageBanner"] as string) ?? DEFAULT_SETTINGS.productsPageBanner,
+    productsPageBannerAlt:
+      (identity["productsPageBannerAlt"] as string) ?? DEFAULT_SETTINGS.productsPageBannerAlt,
+    email: (contact["email"] as string) ?? DEFAULT_SETTINGS.email,
+    phone: (contact["phone"] as string) ?? DEFAULT_SETTINGS.phone,
+    whatsapp: (contact["whatsapp"] as string) ?? DEFAULT_SETTINGS.whatsapp,
+    address: (contact["address"] as string) ?? DEFAULT_SETTINGS.address,
+    hours: (contact["hours"] as string) ?? DEFAULT_SETTINGS.hours,
+    mapUrl: (contact["mapUrl"] as string) ?? "",
+    cnpj: (contact["cnpj"] as string) ?? DEFAULT_SETTINGS.cnpj,
     social,
-    whatsappNumber: whatsapp["number"] as string ?? DEFAULT_SETTINGS.whatsappNumber,
-    whatsappMessage: whatsapp["defaultMessage"] as string ?? DEFAULT_SETTINGS.whatsappMessage,
+    whatsappNumber: (whatsapp["number"] as string) ?? DEFAULT_SETTINGS.whatsappNumber,
+    whatsappMessage: (whatsapp["defaultMessage"] as string) ?? DEFAULT_SETTINGS.whatsappMessage,
     pages: {
-      quemSomos: pages["quemSomos"] as PageContent ?? DEFAULT_SETTINGS.pages.quemSomos,
-      nossaMissao: pages["nossaMissao"] as PageContent ?? DEFAULT_SETTINGS.pages.nossaMissao,
-      formasPagamento: pages["formasPagamento"] as PageContent ?? DEFAULT_SETTINGS.pages.formasPagamento,
-      trocasDevolucoes: pages["trocasDevolucoes"] as PageContent ?? DEFAULT_SETTINGS.pages.trocasDevolucoes,
-      politicaPrivacidade: pages["politicaPrivacidade"] as PageContent ?? DEFAULT_SETTINGS.pages.politicaPrivacidade,
+      quemSomos: (pages["quemSomos"] as PageContent) ?? DEFAULT_SETTINGS.pages.quemSomos,
+      nossaMissao: (pages["nossaMissao"] as PageContent) ?? DEFAULT_SETTINGS.pages.nossaMissao,
+      formasPagamento:
+        (pages["formasPagamento"] as PageContent) ?? DEFAULT_SETTINGS.pages.formasPagamento,
+      trocasDevolucoes:
+        (pages["trocasDevolucoes"] as PageContent) ?? DEFAULT_SETTINGS.pages.trocasDevolucoes,
+      politicaPrivacidade:
+        (pages["politicaPrivacidade"] as PageContent) ?? DEFAULT_SETTINGS.pages.politicaPrivacidade,
     },
     promoMessage: DEFAULT_SETTINGS.promoMessage,
+    imageProvider,
   };
 }
 
@@ -371,7 +394,9 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
 /* Admin CRUD                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function adminInsertProduct(product: Product): Promise<{ ok: boolean; error?: string }> {
+export async function adminInsertProduct(
+  product: Product,
+): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase.from("products").insert({
     category_id: product.categoryId,
     name: product.name,
@@ -391,7 +416,9 @@ export async function adminInsertProduct(product: Product): Promise<{ ok: boolea
   return { ok: true };
 }
 
-export async function adminUpdateProduct(product: Product): Promise<{ ok: boolean; error?: string }> {
+export async function adminUpdateProduct(
+  product: Product,
+): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase
     .from("products")
     .update({
@@ -420,7 +447,9 @@ export async function adminDeleteProduct(id: string): Promise<{ ok: boolean; err
   return { ok: true };
 }
 
-export async function adminInsertCategory(category: Category): Promise<{ ok: boolean; error?: string }> {
+export async function adminInsertCategory(
+  category: Category,
+): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase.from("categories").insert({
     slug: category.slug,
     name: category.name,
@@ -433,7 +462,9 @@ export async function adminInsertCategory(category: Category): Promise<{ ok: boo
   return { ok: true };
 }
 
-export async function adminUpdateCategory(category: Category): Promise<{ ok: boolean; error?: string }> {
+export async function adminUpdateCategory(
+  category: Category,
+): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase
     .from("categories")
     .update({
@@ -497,8 +528,8 @@ export async function adminDeleteBanner(id: string): Promise<{ ok: boolean; erro
 /* ------------------------------------------------------------------ */
 
 export async function adminUpdateSiteSettings(
-  key: "identity" | "contact" | "social" | "whatsapp" | "pages",
-  value: unknown
+  key: "identity" | "contact" | "social" | "whatsapp" | "pages" | "imageProvider",
+  value: unknown,
 ): Promise<{ ok: boolean; error?: string }> {
   const { error } = await (supabase as any)
     .from("site_settings")
@@ -513,7 +544,7 @@ export async function adminUpdateSiteSettings(
 
 export async function uploadProductImage(
   file: File,
-  productId: string
+  productId: string,
 ): Promise<{ ok: boolean; url?: string; error?: string }> {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
   const fileName = `${productId}-${Date.now()}.${ext}`;
@@ -528,7 +559,7 @@ export async function uploadProductImage(
 
 export async function uploadSiteImage(
   file: File,
-  folder: "banners" | "general" = "general"
+  folder: "banners" | "general" = "general",
 ): Promise<{ ok: boolean; url?: string; error?: string }> {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
   const fileName = `${folder}/${Date.now()}.${ext}`;
@@ -571,6 +602,73 @@ export async function deleteSiteImage(url: string): Promise<{ ok: boolean; error
   } catch {
     return { ok: false, error: "URL inválida" };
   }
+}
+
+export async function fetchImageProvider(): Promise<ImageProvider> {
+  try {
+    const settings = await fetchSiteSettings();
+    return settings.imageProvider ?? { cloudName: "", uploadPreset: "", folder: "produtos" };
+  } catch {
+    return { cloudName: "", uploadPreset: "", folder: "produtos" };
+  }
+}
+
+/**
+ * Envia uma imagem para o Cloudinary (upload direto do navegador),
+ * de forma não fixa: lê as configurações salvas no banco (cloud_name,
+ * upload_preset e pasta). Retorna a URL otimizada da imagem.
+ */
+export async function uploadCloudinaryImage(
+  file: File,
+  folder: string,
+): Promise<{ ok: boolean; url?: string; error?: string }> {
+  const provider = await fetchImageProvider();
+  if (!provider.cloudName || !provider.uploadPreset) {
+    return { ok: false, error: "Cloudinary não configurado." };
+  }
+
+  const form = new FormData();
+  form.append("file", file);
+  form.append("upload_preset", provider.uploadPreset);
+  if (folder) form.append("folder", folder);
+
+  const endpoint = `https://api.cloudinary.com/v1_1/${provider.cloudName}/image/upload`;
+
+  try {
+    const response = await fetch(endpoint, { method: "POST", body: form });
+    if (!response.ok) {
+      return { ok: false, error: `Cloudinary devolveu erro ${response.status}` };
+    }
+    const data = await response.json();
+    const url = data["secure_url"] as string | undefined;
+    if (!url) return { ok: false, error: "Cloudinary não retornou a URL." };
+    return { ok: true, url };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Erro ao enviar para o Cloudinary";
+    return { ok: false, error: msg };
+  }
+}
+
+/**
+ * Função central de upload de imagens. Decide dinamicamente:
+ * 1. Se o Cloudinary estiver configurado -> usa Cloudinary.
+ * 2. Caso contrário -> usa o Supabase Storage e, se falhar, salva em base64.
+ * Assim não fica fixo no projeto e funciona em qualquer uma das opções.
+ */
+export async function uploadImage(
+  file: File,
+  opts: { kind: "product" | "site"; productId?: string; folder?: string } = { kind: "site" },
+): Promise<{ ok: boolean; url?: string; error?: string }> {
+  const provider = await fetchImageProvider();
+
+  if (provider.cloudName && provider.uploadPreset) {
+    return uploadCloudinaryImage(file, opts.folder || provider.folder);
+  }
+
+  if (opts.kind === "product" && opts.productId) {
+    return uploadProductImage(file, opts.productId);
+  }
+  return uploadSiteImage(file, (opts.folder as "banners" | "general") || "general");
 }
 
 export async function adminFetchAll(): Promise<{
