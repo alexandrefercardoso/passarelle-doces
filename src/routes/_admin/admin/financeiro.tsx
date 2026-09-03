@@ -1,0 +1,693 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  Banknote,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  DollarSign,
+  Package,
+  TrendingUp,
+  XCircle,
+  Filter,
+  Loader2,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useAllOrders } from "@/hooks/use-store-data";
+import { adminUpdateOrderPaymentStatus } from "@/lib/api";
+import { formatCurrency, formatDateTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { statusLabel, paymentLabel } from "@/components/store/order-status";
+import type { Order } from "@/lib/types";
+
+export const Route = createFileRoute("/_admin/admin/financeiro")({
+  component: AdminFinanceiroPage,
+});
+
+type TabType = "dashboard" | "contas-receber";
+
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  pendente: "#f59e0b",
+  aprovado: "#22c55e",
+  recusado: "#ef4444",
+  cancelado: "#6b7280",
+};
+
+const METHOD_COLORS: Record<string, string> = {
+  pix: "#00b894",
+  cartao: "#6c5ce7",
+  cartao_debito: "#8e7cc3",
+  boleto: "#fdcb6e",
+  dinheiro: "#27ae60",
+  cheque: "#e84393",
+  caderneta: "#0984e3",
+};
+
+function AdminFinanceiroPage() {
+  const [tab, setTab] = useState<TabType>("dashboard");
+  const { data: allOrders, isLoading } = useAllOrders();
+
+  const orders = useMemo(() => allOrders ?? [], [allOrders]);
+
+  if (isLoading) {
+    return <div className="h-96 animate-pulse rounded-2xl bg-muted" />;
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            Financeiro
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Acompanhe as receitas, pagamentos e contas a receber da loja.
+          </p>
+        </div>
+        <div className="flex gap-1 rounded-full border border-border bg-card p-1">
+          <button
+            className={cn(
+              "rounded-full px-4 py-1.5 text-xs font-semibold transition-colors",
+              tab === "dashboard"
+                ? "bg-chocolate text-cream"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+            onClick={() => setTab("dashboard")}
+          >
+            Dashboard
+          </button>
+          <button
+            className={cn(
+              "rounded-full px-4 py-1.5 text-xs font-semibold transition-colors",
+              tab === "contas-receber"
+                ? "bg-chocolate text-cream"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+            onClick={() => setTab("contas-receber")}
+          >
+            Contas a Receber
+          </button>
+        </div>
+      </div>
+
+      {tab === "dashboard" ? (
+        <DashboardTab orders={orders} />
+      ) : (
+        <ContasReceberTab orders={orders} />
+      )}
+    </div>
+  );
+}
+
+/* ================================================================== */
+/* DASHBOARD                                                           */
+/* ================================================================== */
+
+function DashboardTab({ orders }: { orders: Order[] }) {
+  const kpis = useMemo(() => {
+    const confirmed = orders.filter(
+      (o) => o.status !== "cancelado" && o.paymentStatus !== "cancelado",
+    );
+    const totalReceita = confirmed.reduce((acc, o) => acc + o.total, 0);
+    const totalPedidos = confirmed.length;
+    const ticketMedio = totalPedidos > 0 ? totalReceita / totalPedidos : 0;
+    const aReceber = orders
+      .filter((o) => o.paymentStatus === "pendente" && o.status !== "cancelado")
+      .reduce((acc, o) => acc + o.total, 0);
+
+    return { totalReceita, totalPedidos, ticketMedio, aReceber };
+  }, [orders]);
+
+  const monthlyData = useMemo(() => {
+    const map = new Map<string, { receita: number; pedidos: number; label: string; monthLabel: string }>();
+    const confirmed = orders.filter(
+      (o) => o.status !== "cancelado" && o.paymentStatus !== "cancelado",
+    );
+
+    for (const o of confirmed) {
+      const d = new Date(o.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const label = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
+      const existing = map.get(key) ?? { receita: 0, pedidos: 0, label: key, monthLabel: label };
+      existing.receita += o.total;
+      existing.pedidos += 1;
+      map.set(key, existing);
+    }
+
+    return Array.from(map.values())
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .slice(-6);
+  }, [orders]);
+
+  const paymentStatusData = useMemo(() => {
+    const counts = { pendente: 0, aprovado: 0, recusado: 0, cancelado: 0 };
+    for (const o of orders) {
+      counts[o.paymentStatus as keyof typeof counts] += 1;
+    }
+    return Object.entries(counts)
+      .filter(([, v]) => v > 0)
+      .map(([name, value]) => ({ name, value }));
+  }, [orders]);
+
+  const methodData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const o of orders) {
+      counts[o.paymentMethod] = (counts[o.paymentMethod] ?? 0) + 1;
+    }
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [orders]);
+
+  const recentOrders = useMemo(() => orders.slice(0, 8), [orders]);
+
+  return (
+    <div className="mt-6 space-y-6">
+      {/* KPI Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          icon={<DollarSign className="h-5 w-5" />}
+          label="Receita Total"
+          value={formatCurrency(kpis.totalReceita)}
+          color="text-chocolate"
+          bg="bg-chocolate/10"
+        />
+        <KpiCard
+          icon={<Package className="h-5 w-5" />}
+          label="Pedidos Confirmados"
+          value={String(kpis.totalPedidos)}
+          color="text-blue-600"
+          bg="bg-blue-500/10"
+        />
+        <KpiCard
+          icon={<TrendingUp className="h-5 w-5" />}
+          label="Ticket Médio"
+          value={formatCurrency(kpis.ticketMedio)}
+          color="text-purple-600"
+          bg="bg-purple-500/10"
+        />
+        <KpiCard
+          icon={<Clock className="h-5 w-5" />}
+          label="A Receber"
+          value={formatCurrency(kpis.aReceber)}
+          color="text-amber-600"
+          bg="bg-amber-500/10"
+        />
+      </div>
+
+      {/* Charts */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        {/* Bar Chart - Receita Mensal */}
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <h3 className="font-display text-sm font-bold text-foreground">Receita Mensal</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">Últimos 6 meses</p>
+          <div className="mt-4 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <XAxis
+                  dataKey="monthLabel"
+                  tick={{ fontSize: 11, fill: "#9ca3af" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "#9ca3af" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0]?.payload;
+                    if (!d) return null;
+                    return (
+                      <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-xl">
+                        <p className="font-semibold text-foreground">{d.monthLabel}</p>
+                        <p className="text-chocolate">{formatCurrency(d.receita)}</p>
+                        <p className="text-muted-foreground">{d.pedidos} pedidos</p>
+                      </div>
+                    );
+                  }}
+                />
+                <Bar dataKey="receita" fill="#2a1510" radius={[6, 6, 0, 0]} barSize={36} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Pie Charts */}
+        <div className="space-y-6">
+          {/* Status de Pagamento */}
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h3 className="font-display text-sm font-bold text-foreground">Status dos Pagamentos</h3>
+            <div className="mt-3 h-44">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={paymentStatusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {paymentStatusData.map((entry) => (
+                      <Cell
+                        key={entry.name}
+                        fill={PAYMENT_STATUS_COLORS[entry.name] ?? "#9ca3af"}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      const d = payload[0]?.payload;
+                      if (!d) return null;
+                      return (
+                        <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-xl">
+                          <p className="font-semibold capitalize text-foreground">
+                            {d.name === "pendente"
+                              ? "Pendente"
+                              : d.name === "aprovado"
+                                ? "Aprovado"
+                                : d.name === "recusado"
+                                  ? "Recusado"
+                                  : "Cancelado"}
+                          </p>
+                          <p className="text-muted-foreground">{d.value} pedidos</p>
+                        </div>
+                      );
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-2 flex flex-wrap justify-center gap-3">
+              {paymentStatusData.map((d) => (
+                <div key={d.name} className="flex items-center gap-1.5 text-xs">
+                  <div
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: PAYMENT_STATUS_COLORS[d.name] }}
+                  />
+                  <span className="capitalize text-muted-foreground">
+                    {d.name === "pendente"
+                      ? "Pendente"
+                      : d.name === "aprovado"
+                        ? "Aprovado"
+                        : d.name === "recusado"
+                          ? "Recusado"
+                          : "Cancelado"}
+                    :{" "}
+                  </span>
+                  <span className="font-medium text-foreground">{d.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Método de Pagamento */}
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h3 className="font-display text-sm font-bold text-foreground">
+              Por Método de Pagamento
+            </h3>
+            <div className="mt-3 space-y-2.5">
+              {methodData.map((d) => {
+                const total = methodData.reduce((a, b) => a + b.value, 0);
+                const pct = total > 0 ? (d.value / total) * 100 : 0;
+                return (
+                  <div key={d.name}>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium text-foreground">{paymentLabel(d.name)}</span>
+                      <span className="text-muted-foreground">
+                        {d.value} ({pct.toFixed(0)}%)
+                      </span>
+                    </div>
+                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${pct}%`,
+                          backgroundColor: METHOD_COLORS[d.name] ?? "#9ca3af",
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Últimos Pedidos */}
+      <div className="rounded-2xl border border-border bg-card">
+        <div className="border-b border-border px-5 py-4">
+          <h3 className="font-display text-sm font-bold text-foreground">Últimos Pedidos</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Pedido</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Método</TableHead>
+                <TableHead>Pagamento</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recentOrders.map((o) => (
+                <TableRow key={o.id}>
+                  <TableCell className="font-medium text-foreground">
+                    #{o.id.slice(0, 8)}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-muted-foreground">
+                    {formatDateTime(o.createdAt)}
+                  </TableCell>
+                  <TableCell className="max-w-[140px] truncate text-foreground">
+                    {o.customer.name}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{paymentLabel(o.paymentMethod)}</TableCell>
+                  <TableCell>
+                    <PaymentBadge status={o.paymentStatus} />
+                  </TableCell>
+                  <TableCell className="text-right font-semibold text-chocolate-dark">
+                    {formatCurrency(o.total)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/* CONTAS A RECEBER                                                    */
+/* ================================================================== */
+
+function ContasReceberTab({ orders }: { orders: Order[] }) {
+  const [filter, setFilter] = useState<"todos" | "pendente" | "aprovado" | "recusado" | "cancelado">("todos");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const filtered = useMemo(() => {
+    if (filter === "todos") return orders;
+    return orders.filter((o) => o.paymentStatus === filter);
+  }, [orders, filter]);
+
+  const summary = useMemo(() => {
+    const pendente = orders
+      .filter((o) => o.paymentStatus === "pendente" && o.status !== "cancelado")
+      .reduce((a, o) => a + o.total, 0);
+    const aprovado = orders
+      .filter((o) => o.paymentStatus === "aprovado")
+      .reduce((a, o) => a + o.total, 0);
+    const recusado = orders
+      .filter((o) => o.paymentStatus === "recusado")
+      .reduce((a, o) => a + o.total, 0);
+    const cancelado = orders
+      .filter((o) => o.paymentStatus === "cancelado")
+      .reduce((a, o) => a + o.total, 0);
+    return { pendente, aprovado, recusado, cancelado };
+  }, [orders]);
+
+  const handleMarkPaid = async (orderId: string) => {
+    setUpdatingId(orderId);
+    try {
+      const res = await adminUpdateOrderPaymentStatus(orderId, "aprovado");
+      if (!res.ok) {
+        toast.error("Não foi possível atualizar o pagamento", {
+          description: res.error ?? "Tente novamente.",
+        });
+        return;
+      }
+      toast.success("Pagamento confirmado!");
+      await queryClient.refetchQueries({ queryKey: ["all-orders"] });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  return (
+    <div className="mt-6 space-y-6">
+      {/* Resumo */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard
+          icon={<Clock className="h-5 w-5" />}
+          label="A Receber"
+          value={formatCurrency(summary.pendente)}
+          count={orders.filter((o) => o.paymentStatus === "pendente" && o.status !== "cancelado").length}
+          color="text-amber-600"
+          bg="bg-amber-500/10"
+        />
+        <SummaryCard
+          icon={<CheckCircle2 className="h-5 w-5" />}
+          label="Recebido"
+          value={formatCurrency(summary.aprovado)}
+          count={orders.filter((o) => o.paymentStatus === "aprovado").length}
+          color="text-green-600"
+          bg="bg-green-500/10"
+        />
+        <SummaryCard
+          icon={<XCircle className="h-5 w-5" />}
+          label="Recusado"
+          value={formatCurrency(summary.recusado)}
+          count={orders.filter((o) => o.paymentStatus === "recusado").length}
+          color="text-red-600"
+          bg="bg-red-500/10"
+        />
+        <SummaryCard
+          icon={<Banknote className="h-5 w-5" />}
+          label="Cancelado"
+          value={formatCurrency(summary.cancelado)}
+          count={orders.filter((o) => o.paymentStatus === "cancelado").length}
+          color="text-gray-500"
+          bg="bg-gray-500/10"
+        />
+      </div>
+
+      {/* Filtro + Tabela */}
+      <div className="rounded-2xl border border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+          <h3 className="font-display text-sm font-bold text-foreground">
+            Contas a Receber ({filtered.length})
+          </h3>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
+              <SelectTrigger className="h-8 w-40 rounded-full text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="aprovado">Aprovado</SelectItem>
+                <SelectItem value="recusado">Recusado</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Pedido</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Método</TableHead>
+                <TableHead>Status Pgto</TableHead>
+                <TableHead>Pedido</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-12 text-center text-muted-foreground">
+                    Nenhum pedido encontrado para este filtro.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((o) => (
+                  <TableRow key={o.id}>
+                    <TableCell className="font-medium text-foreground">
+                      #{o.id.slice(0, 8)}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatDateTime(o.createdAt)}
+                    </TableCell>
+                    <TableCell>
+                      <p className="max-w-[140px] truncate text-foreground">{o.customer.name}</p>
+                      <p className="max-w-[140px] truncate text-xs text-muted-foreground">
+                        {o.customer.email}
+                      </p>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {paymentLabel(o.paymentMethod)}
+                    </TableCell>
+                    <TableCell>
+                      <PaymentBadge status={o.paymentStatus} />
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-[10px] font-bold",
+                          o.status === "cancelado"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-blue-100 text-blue-700",
+                        )}
+                      >
+                        {statusLabel[o.status] ?? o.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold text-chocolate-dark">
+                      {formatCurrency(o.total)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {o.paymentStatus === "pendente" && o.status !== "cancelado" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full border-green-300 text-green-700 hover:bg-green-50"
+                          disabled={updatingId === o.id}
+                          onClick={() => void handleMarkPaid(o.id)}
+                        >
+                          {updatingId === o.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                          )}
+                          Confirmar pgto
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/* COMPONENTES AUXILIARES                                              */
+/* ================================================================== */
+
+function KpiCard({
+  icon,
+  label,
+  value,
+  color,
+  bg,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  color: string;
+  bg: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="flex items-center gap-3">
+        <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", bg, color)}>
+          {icon}
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="font-display text-xl font-extrabold text-foreground">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SummaryCard({
+  icon,
+  label,
+  value,
+  count,
+  color,
+  bg,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  count: number;
+  color: string;
+  bg: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="flex items-center gap-3">
+        <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", bg, color)}>
+          {icon}
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="font-display text-xl font-extrabold text-foreground">{value}</p>
+          <p className="text-[10px] text-muted-foreground">
+            {count} pedido{count !== 1 ? "s" : ""}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PaymentBadge({ status }: { status: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    pendente: { label: "Pendente", className: "bg-amber-100 text-amber-700" },
+    aprovado: { label: "Aprovado", className: "bg-green-100 text-green-700" },
+    recusado: { label: "Recusado", className: "bg-red-100 text-red-700" },
+    cancelado: { label: "Cancelado", className: "bg-gray-100 text-gray-600" },
+  };
+  const c = config[status] ?? { label: status, className: "bg-gray-100 text-gray-600" };
+  return (
+    <span className={cn("rounded-full px-2.5 py-1 text-[10px] font-bold", c.className)}>
+      {c.label}
+    </span>
+  );
+}

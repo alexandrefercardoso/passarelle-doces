@@ -85,6 +85,8 @@ export function useAllOrders() {
     queryKey: ["all-orders"],
     queryFn: fetchAllOrders,
     staleTime: 30 * 1000,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 }
 

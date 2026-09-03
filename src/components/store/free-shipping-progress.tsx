@@ -1,12 +1,19 @@
 import { Truck } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
-import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import { useSiteSettings } from "@/hooks/use-store-data";
 import { formatCurrency } from "@/lib/format";
 
 export function FreeShippingProgress() {
   const { subtotal } = useCart();
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
-  const percent = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100));
+  const { data: settings } = useSiteSettings();
+
+  const freeShippingEnabled = settings?.freeShippingEnabled ?? false;
+  const threshold = settings?.freeShippingThreshold ?? 199;
+
+  if (!freeShippingEnabled) return null;
+
+  const remaining = Math.max(0, threshold - subtotal);
+  const percent = Math.min(100, Math.round((subtotal / threshold) * 100));
 
   if (remaining <= 0) {
     return (

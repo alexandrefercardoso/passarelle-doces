@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ReceiptText } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ReceiptText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ import {
   statusPaymentLabel,
 } from "@/components/store/order-status";
 import { useAllOrders } from "@/hooks/use-store-data";
+import { adminDeleteOrder } from "@/lib/api";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_admin/admin/pedidos")({
@@ -45,6 +47,7 @@ const statusOptions = [
 
 function AdminOrdersPage() {
   const { data, isLoading, refetch } = useAllOrders();
+  const queryClient = useQueryClient();
   const [updating, setUpdating] = useState<string | null>(null);
 
   const orders = data ?? [];
@@ -63,6 +66,19 @@ function AdminOrdersPage() {
     } finally {
       setUpdating(null);
     }
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    const res = await adminDeleteOrder(orderId);
+    if (!res.ok) {
+      toast.error("Não foi possível excluir o pedido", {
+        description: res.error ?? "Tente novamente.",
+      });
+      return;
+    }
+    toast.success("Pedido excluído com sucesso");
+    void queryClient.invalidateQueries({ queryKey: ["all-orders"] });
+    void refetch();
   };
 
   if (isLoading) {
@@ -97,6 +113,7 @@ function AdminOrdersPage() {
                   <TableHead>Pagamento</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -163,6 +180,26 @@ function AdminOrdersPage() {
                           </SelectContent>
                         </Select>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Excluir pedido"
+                        className="text-destructive hover:text-destructive"
+                        disabled={updating === order.id}
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              `Excluir o pedido #${order.id.slice(0, 8)}? Esta ação não pode ser desfeita.`,
+                            )
+                          ) {
+                            void deleteOrder(order.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

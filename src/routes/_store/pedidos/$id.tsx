@@ -1,5 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CreditCard, MapPin, MessageCircle } from "lucide-react";
+import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, CreditCard, Loader2, MapPin, MessageCircle, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/store/empty-state";
 import {
@@ -10,6 +13,7 @@ import {
 } from "@/components/store/order-status";
 import { ProductImage } from "@/components/store/product-image";
 import { useAllOrders } from "@/hooks/use-store-data";
+import { adminDeleteOrder } from "@/lib/api";
 import { DEFAULT_SETTINGS } from "@/lib/constants";
 import { buildWhatsAppLink, formatCurrency, formatDateTime } from "@/lib/format";
 
@@ -21,6 +25,27 @@ function OrderDetailPage() {
   const { id } = Route.useParams();
   const { data, isLoading } = useAllOrders();
   const order = data?.find((o) => o.id === id);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await adminDeleteOrder(id);
+      if (!res.ok) {
+        toast.error("Não foi possível excluir o pedido", {
+          description: res.error ?? "Tente novamente.",
+        });
+        return;
+      }
+      toast.success("Pedido excluído com sucesso");
+      void queryClient.invalidateQueries({ queryKey: ["all-orders"] });
+      void navigate({ to: "/admin/pedidos" });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -64,11 +89,35 @@ function OrderDetailPage() {
             Realizado em {formatDateTime(order.createdAt)}
           </p>
         </div>
-        <span
-          className={`rounded-full px-4 py-1.5 text-xs font-bold ${statusColorClass(order.status)}`}
-        >
-          {statusLabel[order.status] ?? order.status}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className={`rounded-full px-4 py-1.5 text-xs font-bold ${statusColorClass(order.status)}`}
+          >
+            {statusLabel[order.status] ?? order.status}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={deleting}
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Excluir este pedido e todos os seus itens? Esta ação não pode ser desfeita.",
+                )
+              ) {
+                void handleDelete();
+              }
+            }}
+          >
+            {deleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
+            Excluir pedido
+          </Button>
+        </div>
       </div>
 
       <div className="mt-8 grid gap-6 md:grid-cols-[1fr_280px]">

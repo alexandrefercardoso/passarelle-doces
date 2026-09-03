@@ -8,6 +8,54 @@ import type { SiteSettings } from "./types";
 export const SITE_NAME = "PASSARELLI DOCES";
 export const SITE_TAGLINE = "Doces especiais para momentos especiais";
 
+export const SHIPPING_METHODS = [
+  {
+    id: "retirada",
+    name: "Retirada na loja",
+    price: 0,
+    estimate: "Pronto no mesmo dia",
+    description: "Pegue seus doces direto na nossa loja.",
+  },
+  {
+    id: "express",
+    name: "Entrega expressa (capital)",
+    price: 19.9,
+    estimate: "2 a 5 dias úteis",
+    description: "Entrega rápida dentro da região metropolitana.",
+  },
+  {
+    id: "normal",
+    name: "Encomenda (demais regiões)",
+    price: 29.9,
+    estimate: "5 a 10 dias úteis",
+    description: "Envio para todo o Brasil com prazo estendido.",
+  },
+];
+
+export const FREE_SHIPPING_THRESHOLD = 199;
+
+export const PAYMENT_METHODS = [
+  {
+    id: "pix",
+    name: "PIX",
+    description: "Aprovação imediata com 5% de desconto",
+    type: "imediato",
+    discount: 5,
+  },
+  {
+    id: "cartao",
+    name: "Cartão de crédito",
+    description: "Em até 3x sem juros",
+    type: "imediato",
+  },
+  {
+    id: "boleto",
+    name: "Boleto bancário",
+    description: "Compensação em até 3 dias úteis",
+    type: "aberto",
+  },
+] as const;
+
 export const DEFAULT_SETTINGS: SiteSettings = {
   // Identidade
   name: "PASSARELLI DOCES",
@@ -45,6 +93,12 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   // WhatsApp flutuante
   whatsappNumber: "5511987654321",
   whatsappMessage: "Olá! Gostaria de fazer um pedido 🍬",
+  // Envio / Frete
+  shippingMethods: SHIPPING_METHODS,
+  freeShippingThreshold: 199,
+  freeShippingEnabled: false,
+  // Pagamentos
+  paymentMethods: PAYMENT_METHODS.map((m) => ({ ...m })),
   // Armazenamento de imagens (preenchido no painel admin)
   imageProvider: {
     cloudName: "",
@@ -96,26 +150,3 @@ export const MENU_HIGHLIGHTED_CATEGORIES = [
   "chocolates",
   "bolos",
 ];
-
-export const SHIPPING_METHODS = [
-  {
-    id: "retirada",
-    name: "Retirada na loja",
-    price: 0,
-    estimate: "Pronto no mesmo dia",
-  },
-  {
-    id: "express",
-    name: "Entrega expressa (capital)",
-    price: 19.9,
-    estimate: "2 a 5 dias úteis",
-  },
-  {
-    id: "normal",
-    name: "Encomenda (demais regiões)",
-    price: 29.9,
-    estimate: "5 a 10 dias úteis",
-  },
-];
-
-export const FREE_SHIPPING_THRESHOLD = 199;

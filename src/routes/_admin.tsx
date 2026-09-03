@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, createFileRoute } from "@tanstack/react-router";
 import {
   BadgePercent,
+  DollarSign,
   Home,
+  Instagram,
   LayoutDashboard,
   LogOut,
   Package,
@@ -37,7 +39,9 @@ const navItems = [
   { to: "/admin/produtos", label: "Produtos", icon: Package },
   { to: "/admin/categorias", label: "Categorias", icon: Tags },
   { to: "/admin/banners", label: "Banners", icon: BadgePercent },
+  { to: "/admin/instagram-posts", label: "Instagram", icon: Instagram },
   { to: "/admin/pedidos", label: "Pedidos", icon: ReceiptText },
+  { to: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
   { to: "/admin/configuracoes", label: "Configurações", icon: Settings, exact: true },
 ];
 

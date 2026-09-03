@@ -28,6 +28,8 @@ import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index
 import { Route as AdminAdminBannersRouteImport } from './routes/_admin/admin/banners'
 import { Route as AdminAdminCategoriasRouteImport } from './routes/_admin/admin/categorias'
 import { Route as AdminAdminConfiguracoesRouteImport } from './routes/_admin/admin/configuracoes'
+import { Route as AdminAdminFinanceiroRouteImport } from './routes/_admin/admin/financeiro'
+import { Route as AdminAdminInstagramPostsRouteImport } from './routes/_admin/admin/instagram-posts'
 import { Route as AdminAdminPedidosRouteImport } from './routes/_admin/admin/pedidos'
 import { Route as AdminAdminProdutosRouteImport } from './routes/_admin/admin/produtos'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store/categoria/$slug'
@@ -130,6 +132,17 @@ const AdminAdminConfiguracoesRoute = AdminAdminConfiguracoesRouteImport.update({
   path: '/admin/configuracoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminFinanceiroRoute = AdminAdminFinanceiroRouteImport.update({
+  id: '/admin/financeiro',
+  path: '/admin/financeiro',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminInstagramPostsRoute =
+  AdminAdminInstagramPostsRouteImport.update({
+    id: '/admin/instagram-posts',
+    path: '/admin/instagram-posts',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminAdminPedidosRoute = AdminAdminPedidosRouteImport.update({
   id: '/admin/pedidos',
   path: '/admin/pedidos',
@@ -183,6 +196,8 @@ export interface FileRoutesByFullPath {
   '/admin/banners': typeof AdminAdminBannersRoute
   '/admin/categorias': typeof AdminAdminCategoriasRoute
   '/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
+  '/admin/financeiro': typeof AdminAdminFinanceiroRoute
+  '/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
   '/admin/pedidos': typeof AdminAdminPedidosRoute
   '/admin/produtos': typeof AdminAdminProdutosRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -209,6 +224,8 @@ export interface FileRoutesByTo {
   '/admin/banners': typeof AdminAdminBannersRoute
   '/admin/categorias': typeof AdminAdminCategoriasRoute
   '/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
+  '/admin/financeiro': typeof AdminAdminFinanceiroRoute
+  '/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
   '/admin/pedidos': typeof AdminAdminPedidosRoute
   '/admin/produtos': typeof AdminAdminProdutosRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -238,6 +255,8 @@ export interface FileRoutesById {
   '/_admin/admin/banners': typeof AdminAdminBannersRoute
   '/_admin/admin/categorias': typeof AdminAdminCategoriasRoute
   '/_admin/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
+  '/_admin/admin/financeiro': typeof AdminAdminFinanceiroRoute
+  '/_admin/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
   '/_admin/admin/pedidos': typeof AdminAdminPedidosRoute
   '/_admin/admin/produtos': typeof AdminAdminProdutosRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -266,6 +285,8 @@ export interface FileRouteTypes {
     | '/admin/banners'
     | '/admin/categorias'
     | '/admin/configuracoes'
+    | '/admin/financeiro'
+    | '/admin/instagram-posts'
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/categoria/$slug'
@@ -292,6 +313,8 @@ export interface FileRouteTypes {
     | '/admin/banners'
     | '/admin/categorias'
     | '/admin/configuracoes'
+    | '/admin/financeiro'
+    | '/admin/instagram-posts'
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/categoria/$slug'
@@ -320,6 +343,8 @@ export interface FileRouteTypes {
     | '/_admin/admin/banners'
     | '/_admin/admin/categorias'
     | '/_admin/admin/configuracoes'
+    | '/_admin/admin/financeiro'
+    | '/_admin/admin/instagram-posts'
     | '/_admin/admin/pedidos'
     | '/_admin/admin/produtos'
     | '/_store/categoria/$slug'
@@ -471,6 +496,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminConfiguracoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/financeiro': {
+      id: '/_admin/admin/financeiro'
+      path: '/admin/financeiro'
+      fullPath: '/admin/financeiro'
+      preLoaderRoute: typeof AdminAdminFinanceiroRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/instagram-posts': {
+      id: '/_admin/admin/instagram-posts'
+      path: '/admin/instagram-posts'
+      fullPath: '/admin/instagram-posts'
+      preLoaderRoute: typeof AdminAdminInstagramPostsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/admin/pedidos': {
       id: '/_admin/admin/pedidos'
       path: '/admin/pedidos'
@@ -527,6 +566,8 @@ interface AdminRouteChildren {
   AdminAdminBannersRoute: typeof AdminAdminBannersRoute
   AdminAdminCategoriasRoute: typeof AdminAdminCategoriasRoute
   AdminAdminConfiguracoesRoute: typeof AdminAdminConfiguracoesRoute
+  AdminAdminFinanceiroRoute: typeof AdminAdminFinanceiroRoute
+  AdminAdminInstagramPostsRoute: typeof AdminAdminInstagramPostsRoute
   AdminAdminPedidosRoute: typeof AdminAdminPedidosRoute
   AdminAdminProdutosRoute: typeof AdminAdminProdutosRoute
   AdminAdminIndexRoute: typeof AdminAdminIndexRoute
@@ -536,6 +577,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminBannersRoute: AdminAdminBannersRoute,
   AdminAdminCategoriasRoute: AdminAdminCategoriasRoute,
   AdminAdminConfiguracoesRoute: AdminAdminConfiguracoesRoute,
+  AdminAdminFinanceiroRoute: AdminAdminFinanceiroRoute,
+  AdminAdminInstagramPostsRoute: AdminAdminInstagramPostsRoute,
   AdminAdminPedidosRoute: AdminAdminPedidosRoute,
   AdminAdminProdutosRoute: AdminAdminProdutosRoute,
   AdminAdminIndexRoute: AdminAdminIndexRoute,

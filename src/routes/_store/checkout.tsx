@@ -1,8 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Banknote,
+  BookOpen,
+  CheckCircle2,
   CreditCard,
+  FileText,
+  HandCoins,
+  Landmark,
   Loader2,
   MapPin,
   ReceiptText,
@@ -15,11 +20,11 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/store/empty-state";
 import { ProductImage } from "@/components/store/product-image";
 import { useCart } from "@/hooks/use-cart";
+import { useSiteSettings } from "@/hooks/use-store-data";
 import { saveOrder } from "@/lib/api";
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_METHODS } from "@/lib/constants";
 import { formatCurrency, maskDocument, maskPhone, maskZipCode } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { CustomerInfo, Order, OrderStatus, PaymentMethod, ShippingMethod } from "@/lib/types";
+import type { CustomerInfo, Order, OrderStatus, PaymentMethod, PaymentOption, ShippingMethod } from "@/lib/types";
 
 export const Route = createFileRoute("/_store/checkout")({
   component: CheckoutPage,
@@ -64,23 +69,48 @@ function loadCustomer(): CustomerInfo {
 
 function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
+  const { data: settings } = useSiteSettings();
   const navigate = useNavigate();
   const [customer, setCustomer] = useState<CustomerInfo>(loadCustomer);
-  const [shipping, setShipping] = useState<ShippingMethod>(
-    SHIPPING_METHODS[0] ?? {
-      id: "retirada",
-      name: "Retirada na loja",
-      price: 0,
-      estimate: "Pronto no mesmo dia",
-    },
-  );
-  const [payment, setPayment] = useState<PaymentMethod>("pix");
+  const [shipping, setShipping] = useState<ShippingMethod | null>(null);
+  const [payment, setPayment] = useState<PaymentMethod | null>(null);
   const [step, setStep] = useState<Step>("dados");
   const [placing, setPlacing] = useState(false);
 
-  const discount = useMemo(() => (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 0), [subtotal]);
+  const shippingMethods = settings?.shippingMethods ?? [];
+  const freeShippingThreshold = settings?.freeShippingThreshold ?? 199;
+  const freeShippingEnabled = settings?.freeShippingEnabled ?? false;
+  const paymentMethods = settings?.paymentMethods ?? [];
 
-  const total = subtotal + shipping.price;
+  useEffect(() => {
+    if (shippingMethods.length > 0) {
+      setShipping((prev) => prev ?? shippingMethods[0] ?? null);
+    }
+  }, [shippingMethods]);
+
+  useEffect(() => {
+    if (paymentMethods.length > 0) {
+      setPayment((prev) => prev ?? paymentMethods[0]?.id ?? null);
+    }
+  }, [paymentMethods]);
+
+  if (shipping && !shippingMethods.some((m) => m.id === shipping.id)) {
+    setShipping(shippingMethods[0] ?? null);
+  }
+
+  const effectiveShippingPrice = () => {
+    if (!shipping) return 0;
+    if (freeShippingEnabled && subtotal >= freeShippingThreshold && shipping.price > 0) {
+      return 0;
+    }
+    return shipping.price;
+  };
+
+  const shippingPrice = effectiveShippingPrice;
+
+  const discount = useMemo(() => 0, [subtotal]);
+
+  const total = subtotal + (shipping ? effectiveShippingPrice() : 0);
 
   if (items.length === 0) {
     return (
@@ -101,11 +131,6 @@ function CheckoutPage() {
 
   const updateField = (field: keyof CustomerInfo, value: string) => {
     setCustomer((c) => ({ ...c, [field]: value }));
-  };
-
-  const shippingPrice = () => {
-    if (subtotal >= FREE_SHIPPING_THRESHOLD && shipping.price > 0) return 0;
-    return shipping.price;
   };
 
   const canContinue = () => {
@@ -142,12 +167,16 @@ function CheckoutPage() {
       const seq = Math.floor(1000 + Math.random() * 9000);
       const orderId = `PD-${stamp}-${seq}`;
 
+      if (!payment) throw new Error("Escolha uma forma de pagamento");
+      const selectedPayment = paymentMethods.find((m) => m.id === payment);
+      const opensInAberto = selectedPayment?.type === "aberto";
+
       const order: Order = {
         id: orderId,
         createdAt: now.toISOString(),
         status: "aguardando_pagamento" as OrderStatus,
         paymentMethod: payment,
-        paymentStatus: payment === "pix" ? "pendente" : "pendente",
+        paymentStatus: opensInAberto ? "pendente" : "aprovado",
         items: items.map((i) => ({
           productId: i.productId,
           name: i.name,
@@ -321,40 +350,55 @@ function CheckoutPage() {
               <div className="mt-6">
                 <h3 className="text-sm font-semibold text-foreground">Forma de envio</h3>
                 <p className="text-xs text-muted-foreground">
-                  {subtotal >= FREE_SHIPPING_THRESHOLD && "Frete grátis aplicado! 🎉"}
+                  {freeShippingEnabled &&
+                    subtotal >= freeShippingThreshold &&
+                    "Frete grátis aplicado! 🎉"}
                 </p>
                 <div className="mt-3 grid gap-2">
-                  {SHIPPING_METHODS.map((m) => {
-                    const effective = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : m.price;
-                    return (
-                      <label
-                        key={m.id}
-                        className={cn(
-                          "flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-colors",
-                          shipping.id === m.id
-                            ? "border-gold bg-gold-soft/50"
-                            : "border-border hover:border-gold/50",
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            name="shipping"
-                            checked={shipping.id === m.id}
-                            onChange={() => setShipping(m)}
-                            className="accent-[var(--color-chocolate)]"
-                          />
-                          <div>
-                            <p className="text-sm font-semibold text-foreground">{m.name}</p>
-                            <p className="text-xs text-muted-foreground">{m.estimate}</p>
+                  {shippingMethods.length > 0 ? (
+                    shippingMethods.map((m) => {
+                      const effective =
+                        freeShippingEnabled && subtotal >= freeShippingThreshold ? 0 : m.price;
+                      return (
+                        <label
+                          key={m.id}
+                          className={cn(
+                            "flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-colors",
+                            shipping?.id === m.id
+                              ? "border-gold bg-gold-soft/50"
+                              : "border-border hover:border-gold/50",
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="shipping"
+                              checked={shipping?.id === m.id}
+                              onChange={() => setShipping(m)}
+                              className="accent-[var(--color-chocolate)]"
+                            />
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{m.name}</p>
+                              {m.estimate && (
+                                <p className="text-xs text-muted-foreground">{m.estimate}</p>
+                              )}
+                              {m.description && (
+                                <p className="text-xs text-muted-foreground">{m.description}</p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        <span className="text-sm font-bold text-chocolate-dark">
-                          {effective === 0 ? "Grátis" : formatCurrency(effective)}
-                        </span>
-                      </label>
-                    );
-                  })}
+                          <span className="text-sm font-bold text-chocolate-dark">
+                            {effective === 0 ? "Grátis" : formatCurrency(effective)}
+                          </span>
+                        </label>
+                      );
+                    })
+                  ) : (
+                    <p className="rounded-2xl border border-border p-4 text-sm text-muted-foreground">
+                      Nenhuma forma de envio disponível no momento. Entre em contato para
+                      combinar a entrega.
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -366,71 +410,24 @@ function CheckoutPage() {
                 <CreditCard className="h-5 w-5 text-gold-dark" /> Forma de pagamento
               </h2>
               <div className="mt-5 grid gap-2">
-                <PaymentOption
-                  id="pix"
-                  icon={<Banknote className="h-5 w-5" />}
-                  title="PIX"
-                  text="Aprovação imediata e desconto de 5%"
-                  selected={payment === "pix"}
-                  onChange={() => setPayment("pix")}
-                  extra={
-                    payment === "pix" && (
-                      <div className="rounded-xl bg-cream p-4 text-sm text-muted-foreground">
-                        Vou exibir o QR Code PIX após a confirmação do pedido para você finalizar o
-                        pagamento. O pedido é salvo e confirmado por e-mail assim que enviado.
-                      </div>
-                    )
-                  }
-                />
-                <PaymentOption
-                  id="cartao"
-                  icon={<CreditCard className="h-5 w-5" />}
-                  title="Cartão de crédito"
-                  text="Em até 3x sem juros"
-                  selected={payment === "cartao"}
-                  onChange={() => setPayment("cartao")}
-                  extra={
-                    payment === "cartao" && (
-                      <div className="grid gap-3 rounded-xl bg-cream p-4 sm:grid-cols-2">
-                        <div className="sm:col-span-2">
-                          <Field label="Número do cartão">
-                            <input placeholder="0000 0000 0000 0000" />
-                          </Field>
-                        </div>
-                        <Field label="Validade">
-                          <input placeholder="MM/AA" />
-                        </Field>
-                        <Field label="CVV">
-                          <input placeholder="123" />
-                        </Field>
-                        <div className="sm:col-span-2">
-                          <Field label="Nome impresso no cartão">
-                            <input placeholder="Como está no cartão" />
-                          </Field>
-                        </div>
-                        <p className="text-xs text-muted-foreground sm:col-span-2">
-                          Os dados do cartão são usados apenas para aprovação da cobrança e não são
-                          armazenados pela loja.
-                        </p>
-                      </div>
-                    )
-                  }
-                />
-                <PaymentOption
-                  id="boleto"
-                  icon={<ReceiptText className="h-5 w-5" />}
-                  title="Boleto bancário"
-                  text="Compensação em até 3 dias úteis"
-                  selected={payment === "boleto"}
-                  onChange={() => setPayment("boleto")}
-                  extra={
-                    payment === "boleto" && (
-                      <div className="rounded-xl bg-cream p-4 text-sm text-muted-foreground">
-                        Enviaremos o boleto para o seu e-mail após a confirmação do pedido.
-                      </div>
-                    )
-                  }
-                />
+                {paymentMethods.length === 0 ? (
+                  <p className="rounded-2xl bg-muted p-4 text-sm text-muted-foreground">
+                    Entre em contato para combinar a forma de pagamento.
+                  </p>
+                ) : (
+                  paymentMethods.map((m) => (
+                    <PaymentOption
+                      key={m.id}
+                      id={m.id}
+                      icon={<PaymentIcon id={m.id} />}
+                      title={m.name}
+                      text={m.description}
+                      selected={payment === m.id}
+                      onChange={() => setPayment(m.id)}
+                      extra={renderPaymentExtra(m)}
+                    />
+                  ))
+                )}
               </div>
             </section>
           )}
@@ -503,8 +500,14 @@ function CheckoutPage() {
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Frete</dt>
               <dd className="font-medium">
-                {shippingPrice() === 0 ? (
-                  <span className="font-semibold text-chocolate-dark">Grátis</span>
+                {shipping && shipping.price === 0 ? (
+                  <span className="font-semibold text-chocolate-dark">
+                    {shipping.name.toLowerCase().includes("retirada")
+                      ? "Retirada grátis"
+                      : "Grátis"}
+                  </span>
+                ) : shippingPrice() === 0 ? (
+                  <span className="font-semibold text-gold-dark">Frete grátis</span>
                 ) : (
                   formatCurrency(shippingPrice())
                 )}
@@ -542,6 +545,61 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function PaymentIcon({ id }: { id: string }) {
+  const iconByMethod: Record<string, React.ReactNode> = {
+    pix: <Banknote className="h-5 w-5" />,
+    cartao: <CreditCard className="h-5 w-5" />,
+    cartao_debito: <CreditCard className="h-5 w-5" />,
+    boleto: <FileText className="h-5 w-5" />,
+    dinheiro: <HandCoins className="h-5 w-5" />,
+    cheque: <Landmark className="h-5 w-5" />,
+    caderneta: <BookOpen className="h-5 w-5" />,
+  };
+  return iconByMethod[id] ?? <ReceiptText className="h-5 w-5" />;
+}
+
+function renderPaymentExtra(m: PaymentOption): React.ReactElement | null {
+  if (m.type === "aberto") {
+    return (
+      <div className="flex items-start gap-2 rounded-xl bg-cream p-4 text-sm text-muted-foreground">
+        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-gold-dark" />
+        <span>
+          Este pedido fica <strong className="text-chocolate-dark">em aberto</strong> até
+          recebermos o pagamento ({m.name}). Você pode pagar na entrega ou de acordo com o combinado
+          com a nossa loja.
+        </span>
+      </div>
+    );
+  }
+  if (m.id === "cartao" || m.id === "cartao_debito") {
+    return (
+      <div className="grid gap-3 rounded-xl bg-cream p-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <Field label="Número do cartão">
+            <input placeholder="0000 0000 0000 0000" />
+          </Field>
+        </div>
+        <Field label="Validade">
+          <input placeholder="MM/AA" />
+        </Field>
+        <Field label="CVV">
+          <input placeholder="123" />
+        </Field>
+        <div className="sm:col-span-2">
+          <Field label="Nome impresso no cartão">
+            <input placeholder="Como está no cartão" />
+          </Field>
+        </div>
+        <p className="text-xs text-muted-foreground sm:col-span-2">
+          Os dados do cartão (para métodos imediatos) serão processados externamente. Pedidos em
+          aberto seguem para confirmação manual pela loja.
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
 function PaymentOption({
   id,
   icon,
@@ -554,7 +612,7 @@ function PaymentOption({
   id: PaymentMethod;
   icon: React.ReactNode;
   title: string;
-  text: string;
+  text?: string | undefined;
   selected: boolean;
   onChange: () => void;
   extra?: React.ReactNode;
@@ -577,7 +635,7 @@ function PaymentOption({
         <span className={cn("text-gold-dark", selected && "text-chocolate-dark")}>{icon}</span>
         <div>
           <p className="text-sm font-semibold text-foreground">{title}</p>
-          <p className="text-xs text-muted-foreground">{text}</p>
+          {text && <p className="text-xs text-muted-foreground">{text}</p>}
         </div>
       </div>
       {selected && extra && <div className="mt-3">{extra}</div>}

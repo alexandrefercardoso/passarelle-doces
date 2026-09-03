@@ -239,7 +239,7 @@ function CartPage() {
         <TrustItem
           icon={<ShieldCheck className="h-5 w-5" />}
           title="Pagamento seguro"
-          text="PIX, cartão e boleto com confirmação rápida."
+          text="Várias formas de pagamento com confirmação rápida."
         />
         <TrustItem
           icon={<Tag className="h-5 w-5" />}

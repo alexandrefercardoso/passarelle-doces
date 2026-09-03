@@ -7,6 +7,8 @@ import type {
   Order,
   Product,
   ProductWithCategory,
+  PaymentOption,
+  ShippingMethod,
   SiteSettings,
   SocialLink,
   ValueItem,
@@ -231,6 +233,53 @@ export async function fetchInstagramPosts(): Promise<InstagramPost[]> {
   return (data ?? []).map((row) => mapInstagramPost(row as Record<string, unknown>));
 }
 
+export async function adminFetchInstagramPosts(): Promise<InstagramPost[]> {
+  const { data, error } = await supabase
+    .from("instagram_posts")
+    .select("*")
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row) => mapInstagramPost(row as Record<string, unknown>));
+}
+
+export async function adminInsertInstagramPost(
+  post: InstagramPost,
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase.from("instagram_posts").insert({
+    id: post.id,
+    image_url: post.imageUrl,
+    link_url: post.linkUrl,
+    sort_order: post.sortOrder,
+    is_active: post.isActive,
+  });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function adminUpdateInstagramPost(
+  post: InstagramPost,
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase
+    .from("instagram_posts")
+    .update({
+      image_url: post.imageUrl,
+      link_url: post.linkUrl,
+      sort_order: post.sortOrder,
+      is_active: post.isActive,
+    })
+    .eq("id", post.id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function adminDeleteInstagramPost(
+  id: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase.from("instagram_posts").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
 /* ------------------------------------------------------------------ */
 /* Pedidos                                                             */
 /* ------------------------------------------------------------------ */
@@ -275,6 +324,32 @@ export async function fetchAllOrders(): Promise<Order[]> {
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map((row) => mapOrder(row as Record<string, unknown>));
+}
+
+export async function adminDeleteOrder(id: string): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase.from("orders").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function adminUpdateOrderPaymentStatus(
+  id: string,
+  paymentStatus: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const updateData: { payment_status: string; status?: string } = { payment_status: paymentStatus };
+  if (paymentStatus === "aprovado") {
+    updateData.status = "confirmado";
+  }
+  const { data, error } = await supabase
+    .from("orders")
+    .update(updateData)
+    .eq("id", id)
+    .select();
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "Nenhum pedido encontrado ou sem permissão para atualizar." };
+  }
+  return { ok: true };
 }
 
 /* ------------------------------------------------------------------ */
@@ -328,7 +403,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await (supabase as any)
     .from("site_settings")
     .select("key, value")
-    .in("key", ["identity", "contact", "social", "whatsapp", "pages", "imageProvider"]);
+    .in("key", ["identity", "contact", "social", "whatsapp", "pages", "imageProvider", "shipping", "payments"]);
 
   if (error) {
     const { DEFAULT_SETTINGS } = await import("./constants");
@@ -345,6 +420,8 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
   const social = (settings["social"] as SocialLink[]) ?? [];
   const whatsapp = (settings["whatsapp"] as Record<string, unknown>) ?? {};
   const pages = (settings["pages"] as PageContents) ?? {};
+  const shipping = (settings["shipping"] as Record<string, unknown>) ?? {};
+  const payments = (settings["payments"] as Record<string, unknown>) ?? {};
   const { DEFAULT_SETTINGS } = await import("./constants");
   const imageProvider =
     (settings["imageProvider"] as ImageProvider) ?? DEFAULT_SETTINGS.imageProvider;
@@ -375,6 +452,10 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     social,
     whatsappNumber: (whatsapp["number"] as string) ?? DEFAULT_SETTINGS.whatsappNumber,
     whatsappMessage: (whatsapp["defaultMessage"] as string) ?? DEFAULT_SETTINGS.whatsappMessage,
+    shippingMethods: (shipping["methods"] as ShippingMethod[]) ?? DEFAULT_SETTINGS.shippingMethods,
+    freeShippingThreshold: (shipping["freeShippingThreshold"] as number) ?? DEFAULT_SETTINGS.freeShippingThreshold,
+    freeShippingEnabled: (shipping["freeShippingEnabled"] as boolean) ?? DEFAULT_SETTINGS.freeShippingEnabled,
+    paymentMethods: (payments["methods"] as PaymentOption[]) ?? DEFAULT_SETTINGS.paymentMethods,
     pages: {
       quemSomos: (pages["quemSomos"] as PageContent) ?? DEFAULT_SETTINGS.pages.quemSomos,
       nossaMissao: (pages["nossaMissao"] as PageContent) ?? DEFAULT_SETTINGS.pages.nossaMissao,
@@ -528,7 +609,7 @@ export async function adminDeleteBanner(id: string): Promise<{ ok: boolean; erro
 /* ------------------------------------------------------------------ */
 
 export async function adminUpdateSiteSettings(
-  key: "identity" | "contact" | "social" | "whatsapp" | "pages" | "imageProvider",
+  key: "identity" | "contact" | "social" | "whatsapp" | "pages" | "imageProvider" | "shipping" | "payments",
   value: unknown,
 ): Promise<{ ok: boolean; error?: string }> {
   const { error } = await (supabase as any)
@@ -675,15 +756,21 @@ export async function adminFetchAll(): Promise<{
   products: Product[];
   categories: Category[];
   banners: Banner[];
+  instagramPosts: InstagramPost[];
 }> {
-  const [{ data: products }, { data: categories }, { data: banners }] = await Promise.all([
-    supabase.from("products").select("*").order("created_at", { ascending: false }),
-    supabase.from("categories").select("*").order("sort_order", { ascending: true }),
-    supabase.from("banners").select("*").order("sort_order", { ascending: true }),
-  ]);
+  const [{ data: products }, { data: categories }, { data: banners }, { data: instagramPosts }] =
+    await Promise.all([
+      supabase.from("products").select("*").order("created_at", { ascending: false }),
+      supabase.from("categories").select("*").order("sort_order", { ascending: true }),
+      supabase.from("banners").select("*").order("sort_order", { ascending: true }),
+      supabase.from("instagram_posts").select("*").order("sort_order", { ascending: true }),
+    ]);
   return {
     products: (products ?? []).map((row) => mapProduct(row as Record<string, unknown>)),
     categories: (categories ?? []).map((row) => mapCategory(row as Record<string, unknown>)),
     banners: (banners ?? []).map((row) => mapBanner(row as Record<string, unknown>)),
+    instagramPosts: (instagramPosts ?? []).map((row) =>
+      mapInstagramPost(row as Record<string, unknown>),
+    ),
   };
 }

@@ -72,7 +72,15 @@ export type OrderItem = {
 export type OrderStatus =
   "aguardando_pagamento" | "confirmado" | "preparando" | "enviado" | "entregue" | "cancelado";
 
-export type PaymentMethod = "pix" | "cartao" | "boleto";
+export type PaymentMethod = string;
+
+export type PaymentOption = {
+  id: string;
+  name: string;
+  description?: string;
+  type: "imediato" | "aberto";
+  discount?: number;
+};
 
 export type CustomerInfo = {
   name: string;
@@ -94,6 +102,7 @@ export type ShippingMethod = {
   name: string;
   price: number;
   estimate: string;
+  description?: string;
 };
 
 export type Order = {
@@ -135,6 +144,12 @@ export type SiteSettings = {
   // WhatsApp flutuante
   whatsappNumber: string;
   whatsappMessage: string;
+  // Envio / Frete
+  shippingMethods: ShippingMethod[];
+  freeShippingThreshold: number;
+  freeShippingEnabled: boolean;
+  // Pagamentos
+  paymentMethods: PaymentOption[];
   // Páginas institucionais
   pages: PageContents;
   // Promo

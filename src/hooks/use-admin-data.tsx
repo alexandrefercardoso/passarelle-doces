@@ -10,12 +10,13 @@ import {
   type ReactNode,
 } from "react";
 import { adminFetchAll } from "@/lib/api";
-import type { Banner, Category, Product } from "@/lib/types";
+import type { Banner, Category, InstagramPost, Product } from "@/lib/types";
 
 type AdminDataContextValue = {
   products: Product[];
   categories: Category[];
   banners: Banner[];
+  instagramPosts: InstagramPost[];
   loading: boolean;
   refresh: () => Promise<void>;
 };
@@ -26,6 +27,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [instagramPosts, setInstagramPosts] = useState<InstagramPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -35,6 +37,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       setProducts(result.products);
       setCategories(result.categories);
       setBanners(result.banners);
+      setInstagramPosts(result.instagramPosts);
     } finally {
       setLoading(false);
     }
@@ -45,8 +48,8 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const value = useMemo(
-    () => ({ products, categories, banners, loading, refresh }),
-    [products, categories, banners, loading, refresh],
+    () => ({ products, categories, banners, instagramPosts, loading, refresh }),
+    [products, categories, banners, instagramPosts, loading, refresh],
   );
 
   return <AdminDataContext.Provider value={value}>{children}</AdminDataContext.Provider>;

@@ -3,8 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  Banknote,
+  CreditCard,
   Eye,
   EyeOff,
+  HandCoins,
   Heart,
   Image as ImageIcon,
   ImagePlus,
@@ -12,8 +15,10 @@ import {
   MessageCircle,
   Palette,
   Phone,
+  Plus,
   Save,
   Share2,
+  Truck,
   Trash2,
   Upload,
   User,
@@ -26,10 +31,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { fetchSiteSettings, adminUpdateSiteSettings, uploadImage } from "@/lib/api";
 import { DEFAULT_SETTINGS } from "@/lib/constants";
 import { fileToResizedDataUrl } from "@/lib/image";
-import type { SiteSettings, SocialLink, ValueItem } from "@/lib/types";
+import type { PaymentOption, SiteSettings, SocialLink, ShippingMethod, ValueItem } from "@/lib/types";
 
 export const Route = createFileRoute("/_admin/admin/configuracoes")({
   component: AdminSettingsPage,
@@ -39,9 +45,9 @@ function AdminSettingsPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"identity" | "contact" | "social" | "images">(
-    "identity",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "identity" | "contact" | "social" | "images" | "shipping" | "payments"
+  >("identity");
 
   useEffect(() => {
     let mounted = true;
@@ -101,6 +107,20 @@ function AdminSettingsPage() {
         );
       } else if (activeTab === "images") {
         results.push(await adminUpdateSiteSettings("imageProvider", settings.imageProvider));
+      } else if (activeTab === "shipping") {
+        results.push(
+          await adminUpdateSiteSettings("shipping", {
+            methods: settings.shippingMethods,
+            freeShippingThreshold: settings.freeShippingThreshold,
+            freeShippingEnabled: settings.freeShippingEnabled,
+          }),
+        );
+      } else if (activeTab === "payments") {
+        results.push(
+          await adminUpdateSiteSettings("payments", {
+            methods: settings.paymentMethods,
+          }),
+        );
       } else {
         results.push(await adminUpdateSiteSettings("social", settings.social));
       }
@@ -195,10 +215,14 @@ function AdminSettingsPage() {
 
       <Tabs
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as "identity" | "contact" | "social" | "images")}
+        onValueChange={(v) =>
+          setActiveTab(
+            v as "identity" | "contact" | "social" | "images" | "shipping" | "payments",
+          )
+        }
         className="mt-6"
       >
-        <TabsList className="grid w-full max-w-lg grid-cols-4">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3 sm:grid-cols-6">
           <TabsTrigger value="identity">
             <User className="h-4 w-4" /> Identidade
           </TabsTrigger>
@@ -207,6 +231,12 @@ function AdminSettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="social">
             <Share2 className="h-4 w-4" /> Redes
+          </TabsTrigger>
+          <TabsTrigger value="shipping">
+            <Truck className="h-4 w-4" /> Envio
+          </TabsTrigger>
+          <TabsTrigger value="payments">
+            <CreditCard className="h-4 w-4" /> Pagamentos
           </TabsTrigger>
           <TabsTrigger value="images">
             <ImageIcon className="h-4 w-4" /> Imagens
@@ -224,6 +254,14 @@ function AdminSettingsPage() {
 
         <TabsContent value="social" className="mt-4 space-y-4">
           <SocialCard settings={settings} update={update} />
+        </TabsContent>
+
+        <TabsContent value="shipping" className="mt-4 space-y-4">
+          <ShippingCard settings={settings} update={update} />
+        </TabsContent>
+
+        <TabsContent value="payments" className="mt-4 space-y-4">
+          <PaymentCard settings={settings} update={update} />
         </TabsContent>
 
         <TabsContent value="images" className="mt-4 space-y-4">
@@ -752,5 +790,276 @@ function ImageProviderCard({
         placeholder="Ex: produtos"
       />
     </SectionCard>
+  );
+}
+
+function ShippingCard({ settings, update }: { settings: SiteSettings; update: SettingsUpdater }) {
+  const setMethod = (i: number, key: keyof ShippingMethod, v: string | number) => {
+    const methods = settings.shippingMethods.map((m, idx) =>
+      idx === i ? { ...m, [key]: v } : m,
+    );
+    update("shippingMethods", methods);
+  };
+  const addMethod = () => {
+    update("shippingMethods", [
+      ...settings.shippingMethods,
+      {
+        id: `metodo-${Date.now()}`,
+        name: "",
+        price: 0,
+        estimate: "",
+      },
+    ]);
+  };
+  const removeMethod = (i: number) => {
+    update(
+      "shippingMethods",
+      settings.shippingMethods.filter((_, idx) => idx !== i),
+    );
+  };
+
+  return (
+    <>
+      <SectionCard
+        icon={<Truck className="h-5 w-5 text-gold-dark" />}
+        title="Formas de envio"
+        description="As opções que o cliente verá ao finalizar a compra. Você define o nome, o valor e o prazo de cada uma."
+      >
+        <p className="rounded-2xl bg-cream/60 p-4 text-sm text-muted-foreground">
+          Deixe <strong>flexível</strong>: você pode manter apenas "Retirada na loja", adicionar a
+          entrega na casa do cliente com o valor que quiser, criar uma "encomenda" com prazo
+          estendido, ou o que fizer sentido para o seu negócio. Tudo aparece automaticamente no
+          checkout.
+        </p>
+
+        <div className="space-y-3">
+          {settings.shippingMethods.map((m, i) => (
+            <div key={i} className="grid gap-3 rounded-2xl border border-border p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Opção {i + 1}
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeMethod(i)}
+                  aria-label="Remover opção"
+                  className="text-muted-foreground hover:text-red-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  label="Nome da forma de envio *"
+                  value={m.name}
+                  onChange={(v) => setMethod(i, "name", v)}
+                  placeholder="Ex: Entrega na sua casa"
+                />
+                <Field
+                  label="Valor (R$) *"
+                  value={String(m.price)}
+                  onChange={(v) => setMethod(i, "price", Number(v) || 0)}
+                  placeholder="Ex: 12.5"
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  label="Prazo estimado"
+                  value={m.estimate}
+                  onChange={(v) => setMethod(i, "estimate", v)}
+                  placeholder="Ex: 2 a 5 dias úteis"
+                />
+                <Field
+                  label="Descrição (opcional)"
+                  value={m.description ?? ""}
+                  onChange={(v) => setMethod(i, "description", v)}
+                  placeholder="Ex: Entregamos com todo o cuidado"
+                />
+              </div>
+            </div>
+          ))}
+          {settings.shippingMethods.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Nenhuma forma de envio cadastrada. Adicione pelo menos uma.
+            </p>
+          )}
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="rounded-full"
+          onClick={addMethod}
+        >
+          + Adicionar forma de envio
+        </Button>
+      </SectionCard>
+
+      <SectionCard
+        icon={<Truck className="h-5 w-5 text-gold-dark" />}
+        title="Frete grátis"
+        description="Configure se você quer oferecer frete grátis a partir de um valor de compra."
+      >
+        <div className="flex items-center justify-between rounded-2xl border border-border p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">Ativar frete grátis</p>
+            <p className="text-xs text-muted-foreground">
+              Quando ativado, o frete é grátis se o subtotal do carrinho atingir o valor mínimo.
+            </p>
+          </div>
+          <Switch
+            checked={settings.freeShippingEnabled}
+            onCheckedChange={(v) => update("freeShippingEnabled", v)}
+          />
+        </div>
+
+        {settings.freeShippingEnabled && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Valor mínimo para frete grátis (R$)"
+              value={String(settings.freeShippingThreshold)}
+              onChange={(v) => update("freeShippingThreshold", Number(v) || 0)}
+              placeholder="Ex: 199"
+            />
+          </div>
+        )}
+      </SectionCard>
+    </>
+  );
+}
+
+function PaymentCard({ settings, update }: { settings: SiteSettings; update: SettingsUpdater }) {
+  const methods = settings.paymentMethods ?? [];
+  const setMethod = (i: number, key: keyof PaymentOption, v: string | number | boolean | undefined) => {
+    const next = methods.map((m, idx) => (idx === i ? { ...m, [key]: v } : m));
+    update("paymentMethods", next);
+  };
+  const addMethod = () => {
+    update("paymentMethods", [
+      ...methods,
+      {
+        id: `pagamento-${Date.now()}`,
+        name: "",
+        description: "",
+        type: "aberto",
+      },
+    ]);
+  };
+  const removeMethod = (i: number) => {
+    update("paymentMethods", methods.filter((_, idx) => idx !== i));
+  };
+
+  return (
+    <>
+      <SectionCard
+        icon={<CreditCard className="h-5 w-5 text-gold-dark" />}
+        title="Formas de pagamento"
+        description="Escolha quais métodos aparecem no checkout e como cada um deve ser tratado."
+      >
+        <p className="rounded-2xl bg-cream/60 p-4 text-sm text-muted-foreground">
+          <strong>Flexível:</strong> Pix, cartão de crédito/débito, boleto, dinheiro, cheque,
+          caderneta — ative apenas o que você aceita. Para cada método escolha o{" "}
+          <strong>tipo de recebimento</strong>:
+          <ul className="mt-2 list-inside space-y-1">
+            <li className="list-disc">
+              <strong className="text-chocolate-dark">Imediato</strong> — o cliente paga na hora
+              (ex: Pix, cartão).
+            </li>
+            <li className="list-disc">
+              <strong className="text-chocolate-dark">Em aberto</strong> — o pedido fica pendente e
+              aparece no Financeiro para você baixar quando receber (ex: boleto, cheque, caderneta,
+              dinheiro na entrega).
+            </li>
+          </ul>
+        </p>
+
+        <div className="space-y-3">
+          {methods.map((m, i) => (
+            <div key={i} className="grid gap-3 rounded-2xl border border-border p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Método {i + 1}
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeMethod(i)}
+                  aria-label="Remover método"
+                  className="text-muted-foreground hover:text-red-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  label="Nome do método *"
+                  value={m.name}
+                  onChange={(v) => setMethod(i, "name", v)}
+                  placeholder="Ex: Pix, Cartão, Boleto..."
+                />
+                <Field
+                  label="Descrição (opcional)"
+                  value={m.description ?? ""}
+                  onChange={(v) => setMethod(i, "description", v)}
+                  placeholder="Ex: Aprovação imediata"
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    Tipo de recebimento *
+                  </Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={m.type === "imediato" ? "default" : "outline"}
+                      className="rounded-full"
+                      onClick={() => setMethod(i, "type", "imediato")}
+                    >
+                      <CreditCard className="h-4 w-4" /> Imediato
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={m.type === "aberto" ? "default" : "outline"}
+                      className="rounded-full"
+                      onClick={() => setMethod(i, "type", "aberto")}
+                    >
+                      <HandCoins className="h-4 w-4" /> Em aberto
+                    </Button>
+                  </div>
+                </div>
+                <Field
+                  label="Desconto % (opcional)"
+                  value={m.discount ? String(m.discount) : ""}
+                  onChange={(v) => setMethod(i, "discount", v === "" ? undefined : Number(v) || 0)}
+                  placeholder="Ex: 5"
+                />
+              </div>
+            </div>
+          ))}
+          {methods.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Nenhum método de pagamento cadastrado. Adicione pelo menos um.
+            </p>
+          )}
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="rounded-full"
+          onClick={addMethod}
+        >
+          <Plus className="h-4 w-4" /> Adicionar método de pagamento
+        </Button>
+      </SectionCard>
+    </>
   );
 }

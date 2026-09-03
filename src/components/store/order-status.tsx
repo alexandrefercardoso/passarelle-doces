@@ -25,16 +25,16 @@ export function statusColorClass(status: string): string {
 }
 
 export function paymentLabel(method: string): string {
-  switch (method) {
-    case "pix":
-      return "PIX";
-    case "cartao":
-      return "Cartão de crédito";
-    case "boleto":
-      return "Boleto bancário";
-    default:
-      return method;
-  }
+  const labels: Record<string, string> = {
+    pix: "PIX",
+    cartao: "Cartão de crédito",
+    cartao_debito: "Cartão de débito",
+    boleto: "Boleto bancário",
+    dinheiro: "Dinheiro",
+    cheque: "Cheque",
+    caderneta: "Caderneta",
+  };
+  return labels[method] ?? method;
 }
 
 export function statusPaymentLabel(status: string): string {
