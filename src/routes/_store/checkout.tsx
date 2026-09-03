@@ -174,7 +174,7 @@ function CheckoutPage() {
       const order: Order = {
         id: orderId,
         createdAt: now.toISOString(),
-        status: "aguardando_pagamento" as OrderStatus,
+        status: opensInAberto ? ("aguardando_pagamento" as OrderStatus) : ("confirmado" as OrderStatus),
         paymentMethod: payment,
         paymentStatus: opensInAberto ? "pendente" : "aprovado",
         items: items.map((i) => ({
