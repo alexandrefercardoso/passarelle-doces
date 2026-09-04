@@ -37,13 +37,18 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [result, customersData] = await Promise.all([adminFetchAll(), adminFetchCustomers()]);
+      const result = await adminFetchAll();
       setProducts(result.products);
       setCategories(result.categories);
       setBanners(result.banners);
       setInstagramPosts(result.instagramPosts);
       setOrders(result.orders);
-      setCustomers(customersData);
+      try {
+        const customersData = await adminFetchCustomers();
+        setCustomers(customersData);
+      } catch {
+        setCustomers([]);
+      }
     } finally {
       setLoading(false);
     }

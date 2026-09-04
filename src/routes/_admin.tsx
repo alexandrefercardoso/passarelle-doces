@@ -241,7 +241,7 @@ function SidebarNav({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-gold/10 to-transparent" />
       <div className="pointer-events-none absolute -right-16 top-24 h-40 w-40 rounded-full bg-gold/5 blur-2xl" />
 
-      <div className="relative border-b border-cream/10 px-6 py-6">
+      <div className="relative shrink-0 border-b border-cream/10 px-6 py-6">
         <Link to="/admin" onClick={onNavigate} className="group flex items-center gap-3">
           <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-gold to-gold-dark font-display text-2xl font-black italic text-chocolate-dark shadow-lg shadow-gold/20 transition-transform group-hover:scale-105">
             P
@@ -258,7 +258,7 @@ function SidebarNav({
         </Link>
       </div>
 
-      <nav className="relative flex-1 space-y-5 overflow-y-auto px-4 py-5">
+      <nav className="relative min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-5">
         {navGroups.map((group) => (
           <div key={group.title}>
             <p className="mb-1.5 flex items-center gap-2 px-3 text-[10px] font-bold uppercase tracking-[0.25em] text-cream/40">
@@ -301,7 +301,7 @@ function SidebarNav({
         ))}
       </nav>
 
-      <div className="relative border-t border-cream/10 p-4">
+      <div className="relative shrink-0 border-t border-cream/10 p-4">
         <div className="mb-3 overflow-hidden rounded-2xl bg-gradient-to-br from-chocolate to-chocolate-dark p-3 ring-1 ring-gold/20">
           <div className="flex items-center gap-2 text-gold">
             <Candy className="h-4 w-4" />
