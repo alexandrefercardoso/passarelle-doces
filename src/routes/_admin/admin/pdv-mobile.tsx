@@ -320,30 +320,30 @@ function PdvMobilePage() {
   }
 
   return (
-    <div className="-mx-4 -mt-4 flex h-[calc(100dvh-4rem)] flex-col bg-background sm:-mx-6 sm:-mt-6">
+    <div className="-mx-4 -mb-4 -mt-4 flex h-[calc(100dvh-4rem)] flex-col bg-background sm:-mx-6 sm:-mb-6 sm:-mt-6">
       {/* Header */}
-      <div className="shrink-0 border-b border-border bg-card px-4 py-3">
+      <div className="shrink-0 border-b border-border bg-card px-3 py-2">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-gold-dark">
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-gold-dark">
               Ponto de Venda
             </p>
-            <h1 className="font-display text-lg font-extrabold tracking-tight text-foreground">
+            <h1 className="font-display text-base font-extrabold tracking-tight text-foreground">
               PDV Mobile
             </h1>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
               Total
             </p>
-            <p className="font-display text-lg font-extrabold text-chocolate-dark">
+            <p className="font-display text-base font-extrabold text-chocolate-dark">
               {formatCurrency(total)}
             </p>
           </div>
         </div>
 
         {/* Barra de etapas */}
-        <div className="mt-3 flex items-center gap-1.5">
+        <div className="mt-2 flex items-center gap-1">
           {(
             [
               { id: "products", label: "Produtos" },
@@ -356,12 +356,12 @@ function PdvMobilePage() {
               (s.id === "customer" && !!selectedCustomer);
             const active = step === s.id;
             return (
-              <div key={s.id} className="flex flex-1 items-center gap-1.5">
+              <div key={s.id} className="flex flex-1 items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setStep(s.id)}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-bold transition-colors",
+                    "flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold transition-colors",
                     active
                       ? "bg-chocolate text-cream"
                       : done
@@ -370,13 +370,13 @@ function PdvMobilePage() {
                   )}
                 >
                   {done ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                    <CheckCircle2 className="h-3 w-3 text-green-600" />
                   ) : (
                     <span>{idx + 1}</span>
                   )}
                   <span className="hidden sm:inline">{s.label}</span>
                 </button>
-                {idx < 2 && <ChevronRight className="h-3 w-3 text-muted-foreground/50" />}
+                {idx < 2 && <ChevronRight className="h-2.5 w-2.5 text-muted-foreground/50" />}
               </div>
             );
           })}
@@ -388,11 +388,11 @@ function PdvMobilePage() {
         <>
           <div className="min-h-0 flex-1 overflow-y-auto">
             {/* Categorias */}
-            <div className="no-scrollbar sticky top-0 z-10 flex gap-1.5 overflow-x-auto border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur">
+            <div className="no-scrollbar sticky top-0 z-10 flex gap-1 overflow-x-auto border-b border-border bg-background/95 px-3 py-2 backdrop-blur">
               <button
                 onClick={() => setSelectedCategory(null)}
                 className={cn(
-                  "shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold transition-colors",
+                  "shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors",
                   !selectedCategory
                     ? "bg-chocolate text-cream"
                     : "border border-border text-muted-foreground hover:text-foreground",
@@ -408,7 +408,7 @@ function PdvMobilePage() {
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
                     className={cn(
-                      "shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold transition-colors",
+                      "shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors",
                       selectedCategory === cat.id
                         ? "bg-chocolate text-cream"
                         : "border border-border text-muted-foreground hover:text-foreground",
@@ -420,27 +420,27 @@ function PdvMobilePage() {
             </div>
 
             {/* Busca */}
-            <div className="border-b border-border px-4 pb-3 pt-3">
+            <div className="border-b border-border px-3 py-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Buscar produto..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+                  className="h-9 w-full rounded-lg border border-border bg-card pl-8 pr-3 text-xs outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
                 />
               </div>
             </div>
 
             {/* Produtos */}
-            <div className="p-3">
+            <div className="p-2.5">
               {filteredProducts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-                    <PackageSearch className="h-7 w-7 text-muted-foreground" />
+                <div className="flex flex-col items-center justify-center py-14 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <PackageSearch className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <p className="mt-3 text-sm font-medium text-foreground">
+                  <p className="mt-2.5 text-sm font-medium text-foreground">
                     Nenhum produto encontrado
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -448,32 +448,32 @@ function PdvMobilePage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4">
                   {filteredProducts.map((product) => (
                     <button
                       key={product.id}
                       onClick={() => addItem(product)}
-                      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-md active:scale-95"
+                      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-md active:scale-95"
                     >
                       <div className="relative">
-                        <div className="h-16 w-full overflow-hidden bg-cream">
+                        <div className="h-14 w-full overflow-hidden bg-cream">
                           <ProductImage
                             src={product.imageUrl}
                             alt={product.name}
                             emoji="🧁"
                             className="transition-transform duration-300 group-hover:scale-110"
-                            sizes="120px"
+                            sizes="90px"
                           />
                         </div>
-                        <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-chocolate text-cream opacity-0 shadow transition-opacity group-hover:opacity-100">
-                          <Plus className="h-3 w-3" />
+                        <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-chocolate text-cream opacity-0 shadow transition-opacity group-hover:opacity-100">
+                          <Plus className="h-2.5 w-2.5" />
                         </span>
                       </div>
-                      <div className="flex flex-1 flex-col p-1.5 text-left">
-                        <p className="line-clamp-2 text-[10px] font-semibold text-foreground leading-tight">
+                      <div className="flex flex-1 flex-col p-1 text-left">
+                        <p className="line-clamp-2 text-[9px] font-semibold text-foreground leading-tight">
                           {product.name}
                         </p>
-                        <p className="mt-auto pt-0.5 text-xs font-bold text-chocolate-dark">
+                        <p className="mt-auto pt-0.5 text-[10px] font-bold text-chocolate-dark">
                           {formatCurrency(product.price)}
                         </p>
                       </div>
@@ -486,15 +486,12 @@ function PdvMobilePage() {
 
           {/* Barra flutuante do carrinho */}
           {items.length > 0 && (
-            <div className="shrink-0 border-t border-border bg-card px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
-              <Button
-                className="h-12 w-full rounded-full text-base font-bold"
-                onClick={goToCustomer}
-              >
-                <ShoppingCart className="mr-2 h-5 w-5" />
+            <div className="shrink-0 border-t border-border bg-card px-3 py-2 shadow-[0_-6px_20px_rgba(0,0,0,0.08)]">
+              <Button className="h-10 w-full rounded-full text-sm font-bold" onClick={goToCustomer}>
+                <ShoppingCart className="mr-1.5 h-4 w-4" />
                 Ver carrinho · {items.length} {items.length === 1 ? "item" : "itens"} ·{" "}
                 {formatCurrency(total)}
-                <ArrowRight className="ml-auto h-5 w-5" />
+                <ArrowRight className="ml-auto h-4 w-4" />
               </Button>
             </div>
           )}
@@ -506,34 +503,34 @@ function PdvMobilePage() {
         <>
           <div className="min-h-0 flex-1 overflow-y-auto">
             {/* Cliente */}
-            <div className="border-b border-border bg-card px-4 py-3">
+            <div className="border-b border-border bg-card px-3 py-2.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Cliente
                 </p>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1.5 rounded-full px-2.5 text-xs text-gold-dark hover:text-chocolate-dark"
+                  className="h-6.5 gap-1 rounded-full px-2 text-[11px] text-gold-dark hover:text-chocolate-dark"
                   onClick={() => {
                     setEditingCustomer(null);
                     setShowCustomerDialog(true);
                   }}
                 >
-                  <UserPlus className="h-3.5 w-3.5" />
+                  <UserPlus className="h-3 w-3" />
                   Novo
                 </Button>
               </div>
               {selectedCustomer ? (
-                <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-gold/40 bg-gold-soft/30 px-3 py-2.5">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-chocolate/10 font-display text-sm font-bold text-chocolate">
+                <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-gold/40 bg-gold-soft/30 px-2.5 py-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-chocolate/10 font-display text-xs font-bold text-chocolate">
                     {selectedCustomer.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">
+                    <p className="truncate text-xs font-semibold text-foreground">
                       {selectedCustomer.name}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="truncate text-[11px] text-muted-foreground">
                       {selectedCustomer.phone}
                       {selectedCustomer.document ? ` · ${selectedCustomer.document}` : ""}
                     </p>
@@ -543,17 +540,17 @@ function PdvMobilePage() {
                       setEditingCustomer(selectedCustomer);
                       setShowCustomerDialog(true);
                     }}
-                    className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                     title="Editar"
                   >
-                    <Pencil className="h-3.5 w-3.5" />
+                    <Pencil className="h-3 w-3" />
                   </button>
                   <button
                     onClick={() => setSelectedCustomer(null)}
-                    className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive"
+                    className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
                     title="Remover"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-3 w-3" />
                   </button>
                 </div>
               ) : (
@@ -566,61 +563,61 @@ function PdvMobilePage() {
             </div>
 
             {/* Itens do pedido */}
-            <div className="px-4 py-3">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="px-3 py-2.5">
+              <div className="mb-1.5 flex items-center justify-between">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Itens do pedido
                 </p>
                 <button
                   onClick={() => setStep("products")}
-                  className="flex items-center gap-1 text-xs font-semibold text-gold-dark hover:text-chocolate-dark"
+                  className="flex items-center gap-1 text-[11px] font-semibold text-gold-dark hover:text-chocolate-dark"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <ArrowLeft className="h-3 w-3" />
                   Adicionar mais
                 </button>
               </div>
               {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <ShoppingCart className="h-7 w-7 text-muted-foreground/50" />
-                  <p className="mt-2 text-sm font-medium text-foreground">Carrinho vazio</p>
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <ShoppingCart className="h-6 w-6 text-muted-foreground/50" />
+                  <p className="mt-1.5 text-sm font-medium text-foreground">Carrinho vazio</p>
                 </div>
               ) : (
-                <ul className="space-y-2">
+                <ul className="space-y-1.5">
                   {items.map((item) => (
                     <li
                       key={item.productId}
-                      className="flex items-center gap-2.5 rounded-xl border border-border bg-card p-2.5"
+                      className="flex items-center gap-2 rounded-lg border border-border bg-card p-2"
                     >
-                      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-cream">
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-cream">
                         <ProductImage src={item.imageUrl} alt={item.name} emoji="🧁" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="line-clamp-1 text-xs font-semibold text-foreground">
+                        <p className="line-clamp-1 text-[11px] font-semibold text-foreground">
                           {item.name}
                         </p>
-                        <p className="text-xs font-bold text-chocolate-dark">
+                        <p className="text-[11px] font-bold text-chocolate-dark">
                           {formatCurrency(item.price * item.quantity)}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-0.5">
                         <button
                           onClick={() => updateQty(item.productId, item.quantity - 1)}
-                          className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-gold hover:text-foreground"
+                          className="flex h-5.5 w-5.5 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-gold hover:text-foreground"
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="h-2.5 w-2.5" />
                         </button>
-                        <span className="w-5 text-center text-sm font-bold">{item.quantity}</span>
+                        <span className="w-4 text-center text-xs font-bold">{item.quantity}</span>
                         <button
                           onClick={() => updateQty(item.productId, item.quantity + 1)}
-                          className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-gold hover:text-foreground"
+                          className="flex h-5.5 w-5.5 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-gold hover:text-foreground"
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-2.5 w-2.5" />
                         </button>
                         <button
                           onClick={() => removeItem(item.productId)}
-                          className="ml-0.5 flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                          className="ml-0.5 flex h-5.5 w-5.5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-3 w-3" />
                         </button>
                       </div>
                     </li>
@@ -631,26 +628,26 @@ function PdvMobilePage() {
           </div>
 
           {/* Barra inferior */}
-          <div className="shrink-0 border-t border-border bg-card px-4 py-3">
-            <div className="mb-2 flex items-center justify-between text-sm">
+          <div className="shrink-0 border-t border-border bg-card px-3 py-2.5">
+            <div className="mb-1.5 flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Subtotal</span>
               <span className="font-semibold text-foreground">{formatCurrency(subtotal)}</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <Button
                 variant="outline"
-                className="rounded-full px-4"
+                className="rounded-full px-3"
                 onClick={() => setStep("products")}
               >
                 Voltar
               </Button>
               <Button
-                className="h-11 flex-1 rounded-full text-base font-bold"
+                className="h-10 flex-1 rounded-full text-sm font-bold"
                 disabled={!selectedCustomer}
                 onClick={goToPayment}
               >
                 {selectedCustomer ? "Continuar para pagamento" : "Selecione o cliente"}
-                <ArrowRight className="ml-auto h-5 w-5" />
+                <ArrowRight className="ml-auto h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -662,19 +659,21 @@ function PdvMobilePage() {
         <>
           <div className="min-h-0 flex-1 overflow-y-auto">
             {/* Resumo cliente */}
-            <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-chocolate/10 font-display text-sm font-bold text-chocolate">
+            <div className="flex items-center gap-2.5 border-b border-border bg-card px-3 py-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-chocolate/10 font-display text-xs font-bold text-chocolate">
                 {selectedCustomer?.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">
+                <p className="truncate text-xs font-semibold text-foreground">
                   {selectedCustomer?.name}
                 </p>
-                <p className="truncate text-xs text-muted-foreground">{selectedCustomer?.phone}</p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {selectedCustomer?.phone}
+                </p>
               </div>
               <button
                 onClick={() => setStep("customer")}
-                className="flex items-center gap-1 text-xs font-semibold text-gold-dark hover:text-chocolate-dark"
+                className="flex items-center gap-1 text-[11px] font-semibold text-gold-dark hover:text-chocolate-dark"
               >
                 <Pencil className="h-3 w-3" />
                 Alterar
@@ -682,71 +681,71 @@ function PdvMobilePage() {
             </div>
 
             {/* Forma de pagamento */}
-            <div className="px-4 py-3">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="px-3 py-2.5">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Forma de pagamento
               </p>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {PDV_PAYMENTS.map((pm) => (
                   <button
                     key={pm.id}
                     onClick={() => setPaymentId(pm.id)}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-all",
+                      "flex w-full items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-all",
                       paymentId === pm.id
-                        ? "border-gold bg-gold-soft/30 ring-2 ring-gold/20"
+                        ? "border-gold bg-gold-soft/30 ring-1 ring-gold/20"
                         : "border-border bg-card hover:border-gold/50",
                     )}
                   >
                     <CreditCard
                       className={cn(
-                        "h-5 w-5 shrink-0",
+                        "h-4 w-4 shrink-0",
                         paymentId === pm.id ? "text-gold-dark" : "text-muted-foreground",
                       )}
                     />
                     <div className="min-w-0 flex-1">
                       <p
                         className={cn(
-                          "text-sm font-semibold",
+                          "text-xs font-semibold",
                           paymentId === pm.id ? "text-gold-dark" : "text-foreground",
                         )}
                       >
                         {pm.name}
                       </p>
                       {pm.description && (
-                        <p className="mt-0.5 text-xs text-muted-foreground">{pm.description}</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">{pm.description}</p>
                       )}
                       {pm.discount && pm.discount > 0 && (
-                        <p className="mt-0.5 text-xs font-semibold text-green-600">
+                        <p className="mt-0.5 text-[11px] font-semibold text-green-600">
                           {pm.discount}% de desconto
                         </p>
                       )}
                     </div>
-                    {paymentId === pm.id && <Check className="h-5 w-5 shrink-0 text-gold-dark" />}
+                    {paymentId === pm.id && <Check className="h-4 w-4 shrink-0 text-gold-dark" />}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Desconto */}
-            <div className="px-4 pb-4">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="px-3 pb-2.5">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Desconto
               </p>
-              <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2.5">
-                <span className="text-sm text-muted-foreground">R$</span>
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+                <span className="text-xs text-muted-foreground">R$</span>
                 <input
                   type="number"
                   min={0}
                   value={discount || ""}
                   onChange={(e) => setDiscount(Math.max(0, Number(e.target.value)))}
                   placeholder="0,00"
-                  className="w-full bg-transparent text-base font-semibold text-foreground outline-none"
+                  className="w-full bg-transparent text-sm font-semibold text-foreground outline-none"
                 />
                 {discountValue > 0 && (
                   <button
                     onClick={() => setDiscount(0)}
-                    className="text-xs font-semibold text-destructive hover:underline"
+                    className="text-[11px] font-semibold text-destructive hover:underline"
                   >
                     Limpar
                   </button>
@@ -755,11 +754,11 @@ function PdvMobilePage() {
             </div>
 
             {/* Resumo final */}
-            <div className="mx-4 mb-4 rounded-2xl border border-border bg-card p-4">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="mx-3 mb-3 rounded-xl border border-border bg-card p-3">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Resumo
               </p>
-              <div className="space-y-1.5 text-sm">
+              <div className="space-y-1 text-xs">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
                   <span>{formatCurrency(subtotal)}</span>
@@ -776,7 +775,7 @@ function PdvMobilePage() {
                     <span>Aguardando pagamento</span>
                   </div>
                 )}
-                <div className="flex justify-between border-t border-border pt-2 text-base font-bold text-foreground">
+                <div className="flex justify-between border-t border-border pt-1.5 text-sm font-bold text-foreground">
                   <span>Total</span>
                   <span className="font-display text-chocolate-dark">{formatCurrency(total)}</span>
                 </div>
@@ -785,17 +784,17 @@ function PdvMobilePage() {
           </div>
 
           {/* Barra inferior */}
-          <div className="shrink-0 border-t border-border bg-card px-4 py-3">
-            <div className="flex gap-2">
+          <div className="shrink-0 border-t border-border bg-card px-3 py-2.5">
+            <div className="flex gap-1.5">
               <Button
                 variant="outline"
-                className="rounded-full px-4"
+                className="rounded-full px-3"
                 onClick={() => setStep("customer")}
               >
                 Voltar
               </Button>
               <Button
-                className="h-12 flex-1 rounded-full text-base font-bold"
+                className="h-11 flex-1 rounded-full text-sm font-bold"
                 disabled={closing}
                 onClick={() => void handleCloseOrder()}
               >
@@ -803,7 +802,7 @@ function PdvMobilePage() {
                   "Finalizando..."
                 ) : (
                   <>
-                    <Check className="mr-2 h-5 w-5" />
+                    <Check className="mr-1.5 h-4 w-4" />
                     Fechar Pedido — {formatCurrency(total)}
                   </>
                 )}
@@ -859,8 +858,8 @@ function CustomerSearch({
   }, [query, customers]);
 
   return (
-    <div className="relative mt-2">
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="relative mt-1.5">
+      <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
       <input
         type="text"
         placeholder="Buscar por nome, telefone, CPF/CNPJ..."
@@ -870,27 +869,27 @@ function CustomerSearch({
           setShowResults(true);
         }}
         onFocus={() => setShowResults(true)}
-        className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+        className="h-9 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-xs outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
       />
       {showResults && query.trim() && (
-        <div className="absolute inset-x-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-border bg-card shadow-xl">
+        <div className="absolute inset-x-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-card shadow-xl">
           {results.length > 0 ? (
             results.map((c) => (
               <div
                 key={c.id}
-                className="flex cursor-pointer items-center gap-3 border-b border-border px-3 py-2.5 last:border-0 hover:bg-muted"
+                className="flex cursor-pointer items-center gap-2.5 border-b border-border px-2.5 py-2 last:border-0 hover:bg-muted"
                 onClick={() => {
                   onSelect(c);
                   setQuery("");
                   setShowResults(false);
                 }}
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-chocolate/10 text-xs font-bold text-chocolate">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chocolate/10 text-[11px] font-bold text-chocolate">
                   {c.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{c.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
+                  <p className="truncate text-xs font-medium text-foreground">{c.name}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">
                     {c.phone}
                     {c.document ? ` · ${c.document}` : ""}
                   </p>
