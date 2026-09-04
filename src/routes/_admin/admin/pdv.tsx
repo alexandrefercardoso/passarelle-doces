@@ -421,20 +421,20 @@ function PdvPage() {
                 </p>
               </div>
             ) : viewMode === "mosaic" ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6">
                 {filteredProducts.map((product) => (
                   <button
                     key={product.id}
                     onClick={() => addItem(product)}
                     className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-md"
                   >
-                    <div className="aspect-square w-full overflow-hidden bg-cream">
+                    <div className="h-16 w-full overflow-hidden bg-cream sm:h-20">
                       <ProductImage
                         src={product.imageUrl}
                         alt={product.name}
                         emoji="🧁"
                         className="transition-transform duration-300 group-hover:scale-110"
-                        sizes="160px"
+                        sizes="120px"
                       />
                     </div>
                     <div className="flex flex-1 flex-col p-2 text-left">
