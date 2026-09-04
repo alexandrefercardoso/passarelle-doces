@@ -6,6 +6,8 @@ import {
   Check,
   CreditCard,
   Delete,
+  LayoutGrid,
+  List,
   MapPin,
   Minus,
   PackageSearch,
@@ -91,6 +93,7 @@ function PdvPage() {
   const [items, setItems] = useState<PdvCartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"mosaic" | "list">("mosaic");
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
@@ -331,15 +334,43 @@ function PdvPage() {
         <div className="flex min-h-0 flex-1 flex-col border-r border-border bg-background">
           {/* Busca */}
           <div className="shrink-0 border-b border-border px-4 py-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Buscar produto..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Buscar produto..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+                />
+              </div>
+              <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-card p-0.5">
+                <button
+                  onClick={() => setViewMode("mosaic")}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                    viewMode === "mosaic"
+                      ? "bg-chocolate text-cream"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  title="Mosaico"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                    viewMode === "list"
+                      ? "bg-chocolate text-cream"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  title="Lista"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -389,8 +420,8 @@ function PdvPage() {
                   Tente buscar por outro nome ou selecione outra categoria.
                 </p>
               </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
+            ) : viewMode === "mosaic" ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
                 {filteredProducts.map((product) => (
                   <button
                     key={product.id}
@@ -403,17 +434,17 @@ function PdvPage() {
                         alt={product.name}
                         emoji="🧁"
                         className="transition-transform duration-300 group-hover:scale-110"
-                        sizes="200px"
+                        sizes="160px"
                       />
                     </div>
-                    <div className="flex flex-1 flex-col p-2.5 text-left">
-                      <p className="line-clamp-2 text-xs font-semibold text-foreground leading-tight">
+                    <div className="flex flex-1 flex-col p-2 text-left">
+                      <p className="line-clamp-2 text-[11px] font-semibold text-foreground leading-tight sm:text-xs">
                         {product.name}
                       </p>
-                      <div className="mt-auto pt-1.5">
+                      <div className="mt-auto pt-1">
                         {product.compareAtPrice && product.compareAtPrice > product.price ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-bold text-chocolate-dark">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs font-bold text-chocolate-dark sm:text-sm">
                               {formatCurrency(product.price)}
                             </span>
                             <span className="text-[10px] text-muted-foreground line-through">
@@ -421,12 +452,53 @@ function PdvPage() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-sm font-bold text-chocolate-dark">
+                          <span className="text-xs font-bold text-chocolate-dark sm:text-sm">
                             {formatCurrency(product.price)}
                           </span>
                         )}
                       </div>
                     </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {filteredProducts.map((product) => (
+                  <button
+                    key={product.id}
+                    onClick={() => addItem(product)}
+                    className="group flex items-center gap-3 rounded-xl border border-border bg-card p-2 text-left transition-all hover:border-gold hover:bg-cream/50"
+                  >
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-cream">
+                      <ProductImage
+                        src={product.imageUrl}
+                        alt={product.name}
+                        emoji="🧁"
+                        sizes="64px"
+                      />
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                        {product.name}
+                      </p>
+                      {product.compareAtPrice && product.compareAtPrice > product.price ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-chocolate-dark">
+                            {formatCurrency(product.price)}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground line-through">
+                            {formatCurrency(product.compareAtPrice)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-sm font-bold text-chocolate-dark">
+                          {formatCurrency(product.price)}
+                        </span>
+                      )}
+                    </div>
+                    <span className="shrink-0 rounded-full border border-gold/40 px-2.5 py-1 text-[11px] font-bold text-gold-dark opacity-0 transition-opacity group-hover:opacity-100">
+                      Selecionar
+                    </span>
                   </button>
                 ))}
               </div>
