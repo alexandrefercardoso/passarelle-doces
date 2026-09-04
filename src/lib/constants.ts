@@ -76,6 +76,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   ],
   productsPageBanner: "",
   productsPageBannerAlt: "Nossos doces artesanais",
+  showPdvPrintOption: false,
   // Contato
   email: "contato@passarellidoces.com.br",
   phone: "(11) 98765-4321",

@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type {
   Banner,
   Category,
+  Customer,
   ImageProvider,
   InstagramPost,
   Order,
@@ -97,8 +98,10 @@ function mapInstagramPost(row: Record<string, unknown>): InstagramPost {
 }
 
 function mapOrder(row: Record<string, unknown>): Order {
+  const id = String(row["id"]);
+  const source = (row["source"] as Order["source"]) ?? (id.startsWith("PD-") ? "pdv" : "site");
   return {
-    id: String(row["id"]),
+    id,
     createdAt: String(row["created_at"]),
     status: row["status"] as Order["status"],
     paymentMethod: row["payment_method"] as Order["paymentMethod"],
@@ -109,6 +112,27 @@ function mapOrder(row: Record<string, unknown>): Order {
     shipping: Number(row["shipping"]),
     total: Number(row["total"]),
     customer: row["customer"] as Order["customer"],
+    source,
+  };
+}
+
+function mapCustomer(row: Record<string, unknown>): Customer {
+  return {
+    id: String(row["id"]),
+    name: String(row["name"]),
+    phone: String(row["phone"] ?? ""),
+    email: String(row["email"] ?? ""),
+    document: String(row["document"] ?? ""),
+    zipCode: String(row["zip_code"] ?? ""),
+    address: String(row["address"] ?? ""),
+    number: String(row["number"] ?? ""),
+    complement: String(row["complement"] ?? ""),
+    neighborhood: String(row["neighborhood"] ?? ""),
+    city: String(row["city"] ?? ""),
+    state: String(row["state"] ?? ""),
+    notes: String(row["notes"] ?? ""),
+    createdAt: String(row["created_at"]),
+    updatedAt: String(row["updated_at"]),
   };
 }
 
@@ -287,7 +311,8 @@ export async function adminDeleteInstagramPost(
 export async function saveOrder(order: Order): Promise<{ ok: boolean }> {
   const ownerId = (await supabase.auth.getUser().catch(() => null))?.data?.user?.id ?? null;
 
-  const { error } = await supabase.from("orders").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.from as any)("orders").insert({
     id: order.id,
     user_id: ownerId,
     status: order.status,
@@ -299,6 +324,7 @@ export async function saveOrder(order: Order): Promise<{ ok: boolean }> {
     shipping: order.shipping,
     total: order.total,
     customer: order.customer,
+    source: order.source,
   });
   if (error) throw error;
   return { ok: true };
@@ -340,11 +366,7 @@ export async function adminUpdateOrderPaymentStatus(
   if (paymentStatus === "aprovado") {
     updateData.status = "confirmado";
   }
-  const { data, error } = await supabase
-    .from("orders")
-    .update(updateData)
-    .eq("id", id)
-    .select();
+  const { data, error } = await supabase.from("orders").update(updateData).eq("id", id).select();
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
     return { ok: false, error: "Nenhum pedido encontrado ou sem permissão para atualizar." };
@@ -403,7 +425,16 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await (supabase as any)
     .from("site_settings")
     .select("key, value")
-    .in("key", ["identity", "contact", "social", "whatsapp", "pages", "imageProvider", "shipping", "payments"]);
+    .in("key", [
+      "identity",
+      "contact",
+      "social",
+      "whatsapp",
+      "pages",
+      "imageProvider",
+      "shipping",
+      "payments",
+    ]);
 
   if (error) {
     const { DEFAULT_SETTINGS } = await import("./constants");
@@ -442,6 +473,8 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
       (identity["productsPageBanner"] as string) ?? DEFAULT_SETTINGS.productsPageBanner,
     productsPageBannerAlt:
       (identity["productsPageBannerAlt"] as string) ?? DEFAULT_SETTINGS.productsPageBannerAlt,
+    showPdvPrintOption:
+      (identity["showPdvPrintOption"] as boolean) ?? DEFAULT_SETTINGS.showPdvPrintOption,
     email: (contact["email"] as string) ?? DEFAULT_SETTINGS.email,
     phone: (contact["phone"] as string) ?? DEFAULT_SETTINGS.phone,
     whatsapp: (contact["whatsapp"] as string) ?? DEFAULT_SETTINGS.whatsapp,
@@ -453,8 +486,10 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     whatsappNumber: (whatsapp["number"] as string) ?? DEFAULT_SETTINGS.whatsappNumber,
     whatsappMessage: (whatsapp["defaultMessage"] as string) ?? DEFAULT_SETTINGS.whatsappMessage,
     shippingMethods: (shipping["methods"] as ShippingMethod[]) ?? DEFAULT_SETTINGS.shippingMethods,
-    freeShippingThreshold: (shipping["freeShippingThreshold"] as number) ?? DEFAULT_SETTINGS.freeShippingThreshold,
-    freeShippingEnabled: (shipping["freeShippingEnabled"] as boolean) ?? DEFAULT_SETTINGS.freeShippingEnabled,
+    freeShippingThreshold:
+      (shipping["freeShippingThreshold"] as number) ?? DEFAULT_SETTINGS.freeShippingThreshold,
+    freeShippingEnabled:
+      (shipping["freeShippingEnabled"] as boolean) ?? DEFAULT_SETTINGS.freeShippingEnabled,
     paymentMethods: (payments["methods"] as PaymentOption[]) ?? DEFAULT_SETTINGS.paymentMethods,
     pages: {
       quemSomos: (pages["quemSomos"] as PageContent) ?? DEFAULT_SETTINGS.pages.quemSomos,
@@ -609,7 +644,15 @@ export async function adminDeleteBanner(id: string): Promise<{ ok: boolean; erro
 /* ------------------------------------------------------------------ */
 
 export async function adminUpdateSiteSettings(
-  key: "identity" | "contact" | "social" | "whatsapp" | "pages" | "imageProvider" | "shipping" | "payments",
+  key:
+    | "identity"
+    | "contact"
+    | "social"
+    | "whatsapp"
+    | "pages"
+    | "imageProvider"
+    | "shipping"
+    | "payments",
   value: unknown,
 ): Promise<{ ok: boolean; error?: string }> {
   const { error } = await (supabase as any)
@@ -781,4 +824,52 @@ export async function adminFetchAll(): Promise<{
     ),
     orders: (orders ?? []).map((row) => mapOrder(row as Record<string, unknown>)),
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Clientes (PDV / Admin)                                              */
+/* ------------------------------------------------------------------ */
+
+// Nota: a tabela "customers" será tipada automaticamente após
+// aplicar a migration 0008 no Supabase e regerar os tipos.
+// Enquanto isso, usamos casts nos calls ao Supabase.
+
+export async function adminFetchCustomers(): Promise<Customer[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase.from as any)("customers")
+    .select("*")
+    .order("name", { ascending: true });
+  return (data ?? []).map((row: Record<string, unknown>) => mapCustomer(row));
+}
+
+export async function adminSaveCustomer(
+  customer: Omit<Customer, "createdAt" | "updatedAt">,
+): Promise<{ ok: boolean; error?: string }> {
+  const now = new Date().toISOString();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.from as any)("customers").upsert({
+    id: customer.id,
+    name: customer.name,
+    phone: customer.phone,
+    email: customer.email,
+    document: customer.document,
+    zip_code: customer.zipCode,
+    address: customer.address,
+    number: customer.number,
+    complement: customer.complement,
+    neighborhood: customer.neighborhood,
+    city: customer.city,
+    state: customer.state,
+    notes: customer.notes,
+    updated_at: now,
+  });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function adminDeleteCustomer(id: string): Promise<{ ok: boolean; error?: string }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.from as any)("customers").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowUpRight,
@@ -9,10 +10,11 @@ import {
   ReceiptText,
   ShoppingCart,
   Sparkles,
-  Tags,
+  Store,
   TrendingUp,
   Wallet,
 } from "lucide-react";
+import { OrderDetailDialog } from "@/components/admin/order-detail-dialog";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import { statusLabel, statusColorClass } from "@/components/store/order-status";
@@ -30,11 +32,15 @@ function greeting() {
 
 function AdminDashboard() {
   const { products, categories, banners, orders, loading } = useAdminData();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const activeProducts = products.filter((p) => p.isActive);
   const pendingOrders = orders.filter(
     (o) => o.paymentStatus === "pendente" && o.status !== "cancelado",
   );
+  const pdvOrders = orders.filter((o) => o.source === "pdv");
+  const siteOrders = orders.filter((o) => o.source === "site");
   const lowStock = activeProducts.filter((p) => p.stock <= 5);
   const outOfStock = activeProducts.filter((p) => p.stock <= 0);
   const aReceber = pendingOrders.reduce((acc, o) => acc + o.total, 0);
@@ -42,6 +48,11 @@ function AdminDashboard() {
   const recentOrders = [...orders]
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     .slice(0, 5);
+
+  const openPdvOrder = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setDialogOpen(true);
+  };
 
   if (loading) {
     return (
@@ -69,12 +80,20 @@ function AdminDashboard() {
       accent: "bg-gold-soft text-gold-dark",
     },
     {
-      label: "Pedidos totais",
-      value: String(orders.length),
-      hint: "todos os pedidos registrados",
-      icon: <ReceiptText className="h-5 w-5" />,
+      label: "Vendas PDV",
+      value: String(pdvOrders.length),
+      hint: `${formatCurrency(pdvOrders.filter((o) => o.status !== "cancelado").reduce((a, o) => a + o.total, 0))} em receita`,
+      icon: <Store className="h-5 w-5" />,
       to: "/admin/pedidos",
       accent: "bg-chocolate/10 text-chocolate",
+    },
+    {
+      label: "Vendas Site",
+      value: String(siteOrders.length),
+      hint: `${formatCurrency(siteOrders.filter((o) => o.status !== "cancelado").reduce((a, o) => a + o.total, 0))} em receita`,
+      icon: <ShoppingCart className="h-5 w-5" />,
+      to: "/admin/pedidos",
+      accent: "bg-blue-50 text-blue-700",
     },
     {
       label: "Estoque baixo",
@@ -83,14 +102,6 @@ function AdminDashboard() {
       icon: <PackageX className="h-5 w-5" />,
       to: "/admin/produtos",
       accent: "bg-blush text-rose",
-    },
-    {
-      label: "Produtos ativos",
-      value: String(activeProducts.length),
-      hint: `${categories.length} categorias`,
-      icon: <Package className="h-5 w-5" />,
-      to: "/admin/produtos",
-      accent: "bg-cream text-chocolate-dark",
     },
   ];
 
@@ -159,40 +170,77 @@ function AdminDashboard() {
                 </p>
               </div>
             ) : (
-              recentOrders.map((order) => (
-                <Link
-                  key={order.id}
-                  to="/admin/pedidos"
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3 transition-colors hover:border-gold"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-chocolate/10 text-chocolate">
-                      <ReceiptText className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {order.customer.name}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        #{order.id.slice(0, 8)} · {formatDateTime(order.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-chocolate-dark">
-                        {formatCurrency(order.total)}
-                      </p>
-                      <span
-                        className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${statusColorClass(order.status)}`}
-                      >
-                        {statusLabel[order.status] ?? order.status}
+              recentOrders.map((order) => {
+                const isPdv = order.source === "pdv";
+                return isPdv ? (
+                  <button
+                    key={order.id}
+                    onClick={() => openPdvOrder(order.id)}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-border px-4 py-3 text-left transition-colors hover:border-gold"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-chocolate/10 text-chocolate">
+                        <Store className="h-4 w-4" />
                       </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {order.customer.name}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          #{order.id.slice(0, 15)} · {formatDateTime(order.createdAt)}
+                        </p>
+                      </div>
                     </div>
-                    <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                  </div>
-                </Link>
-              ))
+                    <div className="flex shrink-0 items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-chocolate-dark">
+                          {formatCurrency(order.total)}
+                        </p>
+                        <span
+                          className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${statusColorClass(order.status)}`}
+                        >
+                          {statusLabel[order.status] ?? order.status}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ) : (
+                  <Link
+                    key={order.id}
+                    to="/pedidos/$id"
+                    params={{ id: order.id }}
+                    target="_blank"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3 transition-colors hover:border-gold"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                        <ReceiptText className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {order.customer.name}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          #{order.id.slice(0, 15)} · {formatDateTime(order.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-chocolate-dark">
+                          {formatCurrency(order.total)}
+                        </p>
+                        <span
+                          className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${statusColorClass(order.status)}`}
+                        >
+                          {statusLabel[order.status] ?? order.status}
+                        </span>
+                      </div>
+                      <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                    </div>
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>
@@ -215,10 +263,10 @@ function AdminDashboard() {
                 Em destaque
               </p>
               <p className="mt-2 font-display text-2xl font-extrabold text-cream">
-                {banners.filter((b) => b.isActive).length} batons ativos
+                {activeProducts.length} produtos ativos
               </p>
               <p className="mt-1 text-xs text-cream/70">
-                {categories.length} categorias no catálogo
+                {pdvOrders.length} pedidos PDV · {siteOrders.length} pedidos site
               </p>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
@@ -242,6 +290,8 @@ function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      <OrderDetailDialog open={dialogOpen} onOpenChange={setDialogOpen} orderId={selectedOrderId} />
     </div>
   );
 }

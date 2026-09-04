@@ -81,15 +81,20 @@ function AdminFinanceiroPage() {
   const { data: allOrders, isLoading } = useAllOrders();
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const [sourceFilter, setSourceFilter] = useState<string>("todos");
 
   const orders = useMemo(() => allOrders ?? [], [allOrders]);
 
   const hasDateFilter = startDate !== "" || endDate !== "";
 
-  // Filtra os pedidos pelo período selecionado (data de criação)
+  // Filtra os pedidos pelo período e origem selecionados
   const filteredOrders = useMemo(() => {
-    if (!hasDateFilter) return orders;
-    return orders.filter((o) => {
+    let result = orders;
+    if (sourceFilter !== "todos") {
+      result = result.filter((o) => o.source === sourceFilter);
+    }
+    if (!hasDateFilter) return result;
+    return result.filter((o) => {
       const created = new Date(o.createdAt);
       const start = new Date(`${startDate}T00:00:00`);
       const end = new Date(`${endDate}T23:59:59.999`);
@@ -97,7 +102,7 @@ function AdminFinanceiroPage() {
       if (endDate && created > end) return false;
       return true;
     });
-  }, [orders, startDate, endDate, hasDateFilter]);
+  }, [orders, startDate, endDate, hasDateFilter, sourceFilter]);
 
   const clearDates = () => {
     setStartDate("");
@@ -153,6 +158,32 @@ function AdminFinanceiroPage() {
         onClear={clearDates}
         hasFilter={hasDateFilter}
       />
+
+      {/* Filtro de origem */}
+      <div className="mt-4 flex gap-2">
+        {[
+          { value: "todos", label: "Todos" },
+          { value: "pdv", label: "PDV" },
+          { value: "site", label: "Site" },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setSourceFilter(opt.value)}
+            className={cn(
+              "rounded-full px-4 py-1.5 text-xs font-semibold transition-colors",
+              sourceFilter === opt.value
+                ? opt.value === "pdv"
+                  ? "bg-chocolate text-cream"
+                  : opt.value === "site"
+                    ? "bg-blue-600 text-white"
+                    : "bg-foreground text-background"
+                : "border border-border text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
 
       {tab === "dashboard" ? (
         <DashboardTab orders={filteredOrders} periodStart={startDate} periodEnd={endDate} />

@@ -27,16 +27,20 @@ import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store/troc
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
 import { Route as AdminAdminBannersRouteImport } from './routes/_admin/admin/banners'
 import { Route as AdminAdminCategoriasRouteImport } from './routes/_admin/admin/categorias'
+import { Route as AdminAdminClientesRouteImport } from './routes/_admin/admin/clientes'
 import { Route as AdminAdminConfiguracoesRouteImport } from './routes/_admin/admin/configuracoes'
 import { Route as AdminAdminFinanceiroRouteImport } from './routes/_admin/admin/financeiro'
 import { Route as AdminAdminInstagramPostsRouteImport } from './routes/_admin/admin/instagram-posts'
+import { Route as AdminAdminPdvRouteImport } from './routes/_admin/admin/pdv'
 import { Route as AdminAdminPedidosRouteImport } from './routes/_admin/admin/pedidos'
 import { Route as AdminAdminProdutosRouteImport } from './routes/_admin/admin/produtos'
+import { Route as AdminAdminRelatoriosRouteImport } from './routes/_admin/admin/relatorios'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store/categoria/$slug'
 import { Route as StorePedidosIndexRouteImport } from './routes/_store/pedidos/index'
 import { Route as StorePedidosIdRouteImport } from './routes/_store/pedidos/$id'
 import { Route as StoreProdutosIndexRouteImport } from './routes/_store/produtos/index'
 import { Route as StoreProdutosSlugRouteImport } from './routes/_store/produtos/$slug'
+import { Route as AdminAdminPedidosIdRouteImport } from './routes/_admin/admin/pedidos/$id'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
@@ -127,6 +131,11 @@ const AdminAdminCategoriasRoute = AdminAdminCategoriasRouteImport.update({
   path: '/admin/categorias',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminClientesRoute = AdminAdminClientesRouteImport.update({
+  id: '/admin/clientes',
+  path: '/admin/clientes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdminConfiguracoesRoute = AdminAdminConfiguracoesRouteImport.update({
   id: '/admin/configuracoes',
   path: '/admin/configuracoes',
@@ -143,6 +152,11 @@ const AdminAdminInstagramPostsRoute =
     path: '/admin/instagram-posts',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminAdminPdvRoute = AdminAdminPdvRouteImport.update({
+  id: '/admin/pdv',
+  path: '/admin/pdv',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdminPedidosRoute = AdminAdminPedidosRouteImport.update({
   id: '/admin/pedidos',
   path: '/admin/pedidos',
@@ -151,6 +165,11 @@ const AdminAdminPedidosRoute = AdminAdminPedidosRouteImport.update({
 const AdminAdminProdutosRoute = AdminAdminProdutosRouteImport.update({
   id: '/admin/produtos',
   path: '/admin/produtos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminRelatoriosRoute = AdminAdminRelatoriosRouteImport.update({
+  id: '/admin/relatorios',
+  path: '/admin/relatorios',
   getParentRoute: () => AdminRoute,
 } as any)
 const StoreCategoriaSlugRoute = StoreCategoriaSlugRouteImport.update({
@@ -178,6 +197,11 @@ const StoreProdutosSlugRoute = StoreProdutosSlugRouteImport.update({
   path: '/produtos/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
+const AdminAdminPedidosIdRoute = AdminAdminPedidosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminAdminPedidosRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
@@ -195,17 +219,21 @@ export interface FileRoutesByFullPath {
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/admin/banners': typeof AdminAdminBannersRoute
   '/admin/categorias': typeof AdminAdminCategoriasRoute
+  '/admin/clientes': typeof AdminAdminClientesRoute
   '/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
   '/admin/financeiro': typeof AdminAdminFinanceiroRoute
   '/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
-  '/admin/pedidos': typeof AdminAdminPedidosRoute
+  '/admin/pdv': typeof AdminAdminPdvRoute
+  '/admin/pedidos': typeof AdminAdminPedidosRouteWithChildren
   '/admin/produtos': typeof AdminAdminProdutosRoute
+  '/admin/relatorios': typeof AdminAdminRelatoriosRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/pedidos/$id': typeof StorePedidosIdRoute
   '/produtos/$slug': typeof StoreProdutosSlugRoute
   '/admin/': typeof AdminAdminIndexRoute
   '/pedidos/': typeof StorePedidosIndexRoute
   '/produtos/': typeof StoreProdutosIndexRoute
+  '/admin/pedidos/$id': typeof AdminAdminPedidosIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof StoreIndexRoute
@@ -223,17 +251,21 @@ export interface FileRoutesByTo {
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/admin/banners': typeof AdminAdminBannersRoute
   '/admin/categorias': typeof AdminAdminCategoriasRoute
+  '/admin/clientes': typeof AdminAdminClientesRoute
   '/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
   '/admin/financeiro': typeof AdminAdminFinanceiroRoute
   '/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
-  '/admin/pedidos': typeof AdminAdminPedidosRoute
+  '/admin/pdv': typeof AdminAdminPdvRoute
+  '/admin/pedidos': typeof AdminAdminPedidosRouteWithChildren
   '/admin/produtos': typeof AdminAdminProdutosRoute
+  '/admin/relatorios': typeof AdminAdminRelatoriosRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/pedidos/$id': typeof StorePedidosIdRoute
   '/produtos/$slug': typeof StoreProdutosSlugRoute
   '/admin': typeof AdminAdminIndexRoute
   '/pedidos': typeof StorePedidosIndexRoute
   '/produtos': typeof StoreProdutosIndexRoute
+  '/admin/pedidos/$id': typeof AdminAdminPedidosIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -254,17 +286,21 @@ export interface FileRoutesById {
   '/_store/': typeof StoreIndexRoute
   '/_admin/admin/banners': typeof AdminAdminBannersRoute
   '/_admin/admin/categorias': typeof AdminAdminCategoriasRoute
+  '/_admin/admin/clientes': typeof AdminAdminClientesRoute
   '/_admin/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
   '/_admin/admin/financeiro': typeof AdminAdminFinanceiroRoute
   '/_admin/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
-  '/_admin/admin/pedidos': typeof AdminAdminPedidosRoute
+  '/_admin/admin/pdv': typeof AdminAdminPdvRoute
+  '/_admin/admin/pedidos': typeof AdminAdminPedidosRouteWithChildren
   '/_admin/admin/produtos': typeof AdminAdminProdutosRoute
+  '/_admin/admin/relatorios': typeof AdminAdminRelatoriosRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/_store/pedidos/$id': typeof StorePedidosIdRoute
   '/_store/produtos/$slug': typeof StoreProdutosSlugRoute
   '/_admin/admin/': typeof AdminAdminIndexRoute
   '/_store/pedidos/': typeof StorePedidosIndexRoute
   '/_store/produtos/': typeof StoreProdutosIndexRoute
+  '/_admin/admin/pedidos/$id': typeof AdminAdminPedidosIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -284,17 +320,21 @@ export interface FileRouteTypes {
     | '/trocas-e-devolucoes'
     | '/admin/banners'
     | '/admin/categorias'
+    | '/admin/clientes'
     | '/admin/configuracoes'
     | '/admin/financeiro'
     | '/admin/instagram-posts'
+    | '/admin/pdv'
     | '/admin/pedidos'
     | '/admin/produtos'
+    | '/admin/relatorios'
     | '/categoria/$slug'
     | '/pedidos/$id'
     | '/produtos/$slug'
     | '/admin/'
     | '/pedidos/'
     | '/produtos/'
+    | '/admin/pedidos/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -312,17 +352,21 @@ export interface FileRouteTypes {
     | '/trocas-e-devolucoes'
     | '/admin/banners'
     | '/admin/categorias'
+    | '/admin/clientes'
     | '/admin/configuracoes'
     | '/admin/financeiro'
     | '/admin/instagram-posts'
+    | '/admin/pdv'
     | '/admin/pedidos'
     | '/admin/produtos'
+    | '/admin/relatorios'
     | '/categoria/$slug'
     | '/pedidos/$id'
     | '/produtos/$slug'
     | '/admin'
     | '/pedidos'
     | '/produtos'
+    | '/admin/pedidos/$id'
   id:
     | '__root__'
     | '/_admin'
@@ -342,17 +386,21 @@ export interface FileRouteTypes {
     | '/_store/'
     | '/_admin/admin/banners'
     | '/_admin/admin/categorias'
+    | '/_admin/admin/clientes'
     | '/_admin/admin/configuracoes'
     | '/_admin/admin/financeiro'
     | '/_admin/admin/instagram-posts'
+    | '/_admin/admin/pdv'
     | '/_admin/admin/pedidos'
     | '/_admin/admin/produtos'
+    | '/_admin/admin/relatorios'
     | '/_store/categoria/$slug'
     | '/_store/pedidos/$id'
     | '/_store/produtos/$slug'
     | '/_admin/admin/'
     | '/_store/pedidos/'
     | '/_store/produtos/'
+    | '/_admin/admin/pedidos/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -489,6 +537,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminCategoriasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/clientes': {
+      id: '/_admin/admin/clientes'
+      path: '/admin/clientes'
+      fullPath: '/admin/clientes'
+      preLoaderRoute: typeof AdminAdminClientesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/admin/configuracoes': {
       id: '/_admin/admin/configuracoes'
       path: '/admin/configuracoes'
@@ -510,6 +565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminInstagramPostsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/pdv': {
+      id: '/_admin/admin/pdv'
+      path: '/admin/pdv'
+      fullPath: '/admin/pdv'
+      preLoaderRoute: typeof AdminAdminPdvRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/admin/pedidos': {
       id: '/_admin/admin/pedidos'
       path: '/admin/pedidos'
@@ -522,6 +584,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/produtos'
       fullPath: '/admin/produtos'
       preLoaderRoute: typeof AdminAdminProdutosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/relatorios': {
+      id: '/_admin/admin/relatorios'
+      path: '/admin/relatorios'
+      fullPath: '/admin/relatorios'
+      preLoaderRoute: typeof AdminAdminRelatoriosRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_store/categoria/$slug': {
@@ -559,28 +628,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreProdutosSlugRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_admin/admin/pedidos/$id': {
+      id: '/_admin/admin/pedidos/$id'
+      path: '/$id'
+      fullPath: '/admin/pedidos/$id'
+      preLoaderRoute: typeof AdminAdminPedidosIdRouteImport
+      parentRoute: typeof AdminAdminPedidosRoute
+    }
   }
 }
+
+interface AdminAdminPedidosRouteChildren {
+  AdminAdminPedidosIdRoute: typeof AdminAdminPedidosIdRoute
+}
+
+const AdminAdminPedidosRouteChildren: AdminAdminPedidosRouteChildren = {
+  AdminAdminPedidosIdRoute: AdminAdminPedidosIdRoute,
+}
+
+const AdminAdminPedidosRouteWithChildren =
+  AdminAdminPedidosRoute._addFileChildren(AdminAdminPedidosRouteChildren)
 
 interface AdminRouteChildren {
   AdminAdminBannersRoute: typeof AdminAdminBannersRoute
   AdminAdminCategoriasRoute: typeof AdminAdminCategoriasRoute
+  AdminAdminClientesRoute: typeof AdminAdminClientesRoute
   AdminAdminConfiguracoesRoute: typeof AdminAdminConfiguracoesRoute
   AdminAdminFinanceiroRoute: typeof AdminAdminFinanceiroRoute
   AdminAdminInstagramPostsRoute: typeof AdminAdminInstagramPostsRoute
-  AdminAdminPedidosRoute: typeof AdminAdminPedidosRoute
+  AdminAdminPdvRoute: typeof AdminAdminPdvRoute
+  AdminAdminPedidosRoute: typeof AdminAdminPedidosRouteWithChildren
   AdminAdminProdutosRoute: typeof AdminAdminProdutosRoute
+  AdminAdminRelatoriosRoute: typeof AdminAdminRelatoriosRoute
   AdminAdminIndexRoute: typeof AdminAdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminBannersRoute: AdminAdminBannersRoute,
   AdminAdminCategoriasRoute: AdminAdminCategoriasRoute,
+  AdminAdminClientesRoute: AdminAdminClientesRoute,
   AdminAdminConfiguracoesRoute: AdminAdminConfiguracoesRoute,
   AdminAdminFinanceiroRoute: AdminAdminFinanceiroRoute,
   AdminAdminInstagramPostsRoute: AdminAdminInstagramPostsRoute,
-  AdminAdminPedidosRoute: AdminAdminPedidosRoute,
+  AdminAdminPdvRoute: AdminAdminPdvRoute,
+  AdminAdminPedidosRoute: AdminAdminPedidosRouteWithChildren,
   AdminAdminProdutosRoute: AdminAdminProdutosRoute,
+  AdminAdminRelatoriosRoute: AdminAdminRelatoriosRoute,
   AdminAdminIndexRoute: AdminAdminIndexRoute,
 }
 

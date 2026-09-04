@@ -9,8 +9,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { adminFetchAll } from "@/lib/api";
-import type { Banner, Category, InstagramPost, Order, Product } from "@/lib/types";
+import { adminFetchAll, adminFetchCustomers } from "@/lib/api";
+import type { Banner, Category, Customer, InstagramPost, Order, Product } from "@/lib/types";
 
 type AdminDataContextValue = {
   products: Product[];
@@ -18,6 +18,7 @@ type AdminDataContextValue = {
   banners: Banner[];
   instagramPosts: InstagramPost[];
   orders: Order[];
+  customers: Customer[];
   loading: boolean;
   refresh: () => Promise<void>;
 };
@@ -30,17 +31,19 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [instagramPosts, setInstagramPosts] = useState<InstagramPost[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await adminFetchAll();
+      const [result, customersData] = await Promise.all([adminFetchAll(), adminFetchCustomers()]);
       setProducts(result.products);
       setCategories(result.categories);
       setBanners(result.banners);
       setInstagramPosts(result.instagramPosts);
       setOrders(result.orders);
+      setCustomers(customersData);
     } finally {
       setLoading(false);
     }
@@ -51,8 +54,8 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const value = useMemo(
-    () => ({ products, categories, banners, instagramPosts, orders, loading, refresh }),
-    [products, categories, banners, instagramPosts, orders, loading, refresh],
+    () => ({ products, categories, banners, instagramPosts, orders, customers, loading, refresh }),
+    [products, categories, banners, instagramPosts, orders, customers, loading, refresh],
   );
 
   return <AdminDataContext.Provider value={value}>{children}</AdminDataContext.Provider>;

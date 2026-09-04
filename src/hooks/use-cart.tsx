@@ -47,45 +47,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setHydrated(true);
   }, []);
 
-  const persist = useCallback((next: CartItem[]) => {
-    setItems(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // localStorage indisponível
-    }
-  }, []);
-
-  const addItem = useCallback((product: ProductWithCategory, quantity = 1) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.productId === product.id);
-      let next: CartItem[];
-      if (existing) {
-        next = prev.map((i) =>
-          i.productId === product.id
-            ? { ...i, quantity: Math.min(i.quantity + quantity, i.stock || quantity) }
-            : i,
-        );
-      } else {
-        next = [
-          ...prev,
-          {
-            productId: product.id,
-            name: product.name,
-            slug: product.slug,
-            price: product.price,
-            compareAtPrice: product.compareAtPrice,
-            imageUrl: product.imageUrl,
-            quantity,
-            stock: product.stock,
-          },
-        ];
-      }
-      return next;
-    });
-    setIsOpen(true);
-  }, []);
-
+  // Persiste no localStorage sempre que items mudam (após hidratação)
   useEffect(() => {
     if (!hydrated) return;
     try {
@@ -95,33 +57,54 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, hydrated]);
 
-  const removeItem = useCallback(
-    (productId: string) => {
-      persist(items.filter((i) => i.productId !== productId));
-    },
-    [items, persist],
-  );
-
-  const updateQuantity = useCallback(
-    (productId: string, quantity: number) => {
-      if (quantity <= 0) {
-        persist(items.filter((i) => i.productId !== productId));
-        return;
-      }
-      persist(
-        items.map((i) =>
-          i.productId === productId
-            ? { ...i, quantity: Math.min(quantity, i.stock || quantity) }
+  const addItem = useCallback((product: ProductWithCategory, quantity = 1) => {
+    setItems((prev) => {
+      const existing = prev.find((i) => i.productId === product.id);
+      if (existing) {
+        return prev.map((i) =>
+          i.productId === product.id
+            ? { ...i, quantity: Math.min(i.quantity + quantity, i.stock > 0 ? i.stock : Infinity) }
             : i,
-        ),
-      );
-    },
-    [items, persist],
-  );
+        );
+      }
+      return [
+        ...prev,
+        {
+          productId: product.id,
+          name: product.name,
+          slug: product.slug,
+          price: product.price,
+          compareAtPrice: product.compareAtPrice,
+          imageUrl: product.imageUrl,
+          quantity,
+          stock: product.stock,
+        },
+      ];
+    });
+    setIsOpen(true);
+  }, []);
+
+  const removeItem = useCallback((productId: string) => {
+    setItems((prev) => prev.filter((i) => i.productId !== productId));
+  }, []);
+
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      setItems((prev) => prev.filter((i) => i.productId !== productId));
+      return;
+    }
+    setItems((prev) =>
+      prev.map((i) =>
+        i.productId === productId
+          ? { ...i, quantity: Math.min(quantity, i.stock > 0 ? i.stock : Infinity) }
+          : i,
+      ),
+    );
+  }, []);
 
   const clearCart = useCallback(() => {
-    persist([]);
-  }, [persist]);
+    setItems([]);
+  }, []);
 
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);

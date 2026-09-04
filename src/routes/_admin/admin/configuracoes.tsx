@@ -16,6 +16,7 @@ import {
   Palette,
   Phone,
   Plus,
+  Printer,
   Save,
   Share2,
   Truck,
@@ -35,7 +36,13 @@ import { Switch } from "@/components/ui/switch";
 import { fetchSiteSettings, adminUpdateSiteSettings, uploadImage } from "@/lib/api";
 import { DEFAULT_SETTINGS } from "@/lib/constants";
 import { fileToResizedDataUrl } from "@/lib/image";
-import type { PaymentOption, SiteSettings, SocialLink, ShippingMethod, ValueItem } from "@/lib/types";
+import type {
+  PaymentOption,
+  SiteSettings,
+  SocialLink,
+  ShippingMethod,
+  ValueItem,
+} from "@/lib/types";
 
 export const Route = createFileRoute("/_admin/admin/configuracoes")({
   component: AdminSettingsPage,
@@ -85,6 +92,7 @@ function AdminSettingsPage() {
             values: settings.values,
             productsPageBanner: settings.productsPageBanner,
             productsPageBannerAlt: settings.productsPageBannerAlt,
+            showPdvPrintOption: settings.showPdvPrintOption,
           }),
         );
       } else if (activeTab === "contact") {
@@ -160,6 +168,7 @@ function AdminSettingsPage() {
       values: next.values,
       productsPageBanner: next.productsPageBanner,
       productsPageBannerAlt: next.productsPageBannerAlt,
+      showPdvPrintOption: next.showPdvPrintOption,
     });
     if (!res.ok) {
       toast.error("Não foi possível salvar o banner", {
@@ -216,9 +225,7 @@ function AdminSettingsPage() {
       <Tabs
         value={activeTab}
         onValueChange={(v) =>
-          setActiveTab(
-            v as "identity" | "contact" | "social" | "images" | "shipping" | "payments",
-          )
+          setActiveTab(v as "identity" | "contact" | "social" | "images" | "shipping" | "payments")
         }
         className="mt-6"
       >
@@ -380,6 +387,26 @@ function IdentityCard({
             label="Cor secundária"
             value={settings.secondaryColor}
             onChange={(v) => update("secondaryColor", v)}
+          />
+        </div>
+        <div className="flex items-center justify-between rounded-2xl border border-border p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-chocolate/10">
+              <Printer className="h-5 w-5 text-chocolate" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Mostrar opção de imprimir após fechar o pedido
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Quando ativado, o PDV exibe um botão para imprimir o cupom na bobina depois de
+                confirmar um pedido.
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={settings.showPdvPrintOption}
+            onCheckedChange={(v) => update("showPdvPrintOption", v)}
           />
         </div>
       </SectionCard>
@@ -795,9 +822,7 @@ function ImageProviderCard({
 
 function ShippingCard({ settings, update }: { settings: SiteSettings; update: SettingsUpdater }) {
   const setMethod = (i: number, key: keyof ShippingMethod, v: string | number) => {
-    const methods = settings.shippingMethods.map((m, idx) =>
-      idx === i ? { ...m, [key]: v } : m,
-    );
+    const methods = settings.shippingMethods.map((m, idx) => (idx === i ? { ...m, [key]: v } : m));
     update("shippingMethods", methods);
   };
   const addMethod = () => {
@@ -933,7 +958,11 @@ function ShippingCard({ settings, update }: { settings: SiteSettings; update: Se
 
 function PaymentCard({ settings, update }: { settings: SiteSettings; update: SettingsUpdater }) {
   const methods = settings.paymentMethods ?? [];
-  const setMethod = (i: number, key: keyof PaymentOption, v: string | number | boolean | undefined) => {
+  const setMethod = (
+    i: number,
+    key: keyof PaymentOption,
+    v: string | number | boolean | undefined,
+  ) => {
     const next = methods.map((m, idx) => (idx === i ? { ...m, [key]: v } : m));
     update("paymentMethods", next);
   };
@@ -949,7 +978,10 @@ function PaymentCard({ settings, update }: { settings: SiteSettings; update: Set
     ]);
   };
   const removeMethod = (i: number) => {
-    update("paymentMethods", methods.filter((_, idx) => idx !== i));
+    update(
+      "paymentMethods",
+      methods.filter((_, idx) => idx !== i),
+    );
   };
 
   return (

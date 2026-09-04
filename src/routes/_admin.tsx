@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, createFileRoute } from "@tanstack/react-router";
 import {
   BadgePercent,
+  BarChart3,
   Candy,
   DollarSign,
   Home,
@@ -14,8 +15,10 @@ import {
   Package,
   ReceiptText,
   Settings,
+  ShoppingCart,
   Sparkles,
   Tags,
+  Users,
   Loader2,
   Lock,
   Mail,
@@ -70,8 +73,11 @@ const navGroups: NavGroup[] = [
   {
     title: "Vendas",
     items: [
+      { to: "/admin/pdv", label: "PDV", icon: ShoppingCart },
       { to: "/admin/pedidos", label: "Pedidos", icon: ReceiptText },
+      { to: "/admin/clientes", label: "Clientes", icon: Users },
       { to: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
+      { to: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
     ],
   },
   {

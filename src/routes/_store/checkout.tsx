@@ -24,7 +24,14 @@ import { useSiteSettings } from "@/hooks/use-store-data";
 import { saveOrder } from "@/lib/api";
 import { formatCurrency, maskDocument, maskPhone, maskZipCode } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { CustomerInfo, Order, OrderStatus, PaymentMethod, PaymentOption, ShippingMethod } from "@/lib/types";
+import type {
+  CustomerInfo,
+  Order,
+  OrderStatus,
+  PaymentMethod,
+  PaymentOption,
+  ShippingMethod,
+} from "@/lib/types";
 
 export const Route = createFileRoute("/_store/checkout")({
   component: CheckoutPage,
@@ -174,7 +181,9 @@ function CheckoutPage() {
       const order: Order = {
         id: orderId,
         createdAt: now.toISOString(),
-        status: opensInAberto ? ("aguardando_pagamento" as OrderStatus) : ("confirmado" as OrderStatus),
+        status: opensInAberto
+          ? ("aguardando_pagamento" as OrderStatus)
+          : ("confirmado" as OrderStatus),
         paymentMethod: payment,
         paymentStatus: opensInAberto ? "pendente" : "aprovado",
         items: items.map((i) => ({
@@ -189,6 +198,7 @@ function CheckoutPage() {
         shipping: shippingPrice(),
         total: total,
         customer,
+        source: "site",
       };
 
       const res = await saveOrder(order);
@@ -395,8 +405,8 @@ function CheckoutPage() {
                     })
                   ) : (
                     <p className="rounded-2xl border border-border p-4 text-sm text-muted-foreground">
-                      Nenhuma forma de envio disponível no momento. Entre em contato para
-                      combinar a entrega.
+                      Nenhuma forma de envio disponível no momento. Entre em contato para combinar a
+                      entrega.
                     </p>
                   )}
                 </div>
@@ -564,9 +574,9 @@ function renderPaymentExtra(m: PaymentOption): React.ReactElement | null {
       <div className="flex items-start gap-2 rounded-xl bg-cream p-4 text-sm text-muted-foreground">
         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-gold-dark" />
         <span>
-          Este pedido fica <strong className="text-chocolate-dark">em aberto</strong> até
-          recebermos o pagamento ({m.name}). Você pode pagar na entrega ou de acordo com o combinado
-          com a nossa loja.
+          Este pedido fica <strong className="text-chocolate-dark">em aberto</strong> até recebermos
+          o pagamento ({m.name}). Você pode pagar na entrega ou de acordo com o combinado com a
+          nossa loja.
         </span>
       </div>
     );

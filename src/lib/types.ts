@@ -105,6 +105,8 @@ export type ShippingMethod = {
   description?: string;
 };
 
+export type OrderSource = "pdv" | "site";
+
 export type Order = {
   id: string;
   createdAt: string;
@@ -117,6 +119,7 @@ export type Order = {
   shipping: number;
   total: number;
   customer: CustomerInfo;
+  source: OrderSource;
 };
 
 export type SiteSettings = {
@@ -131,6 +134,7 @@ export type SiteSettings = {
   values: ValueItem[];
   productsPageBanner: string;
   productsPageBannerAlt: string;
+  showPdvPrintOption: boolean;
   // Contato
   email: string;
   phone: string;
@@ -188,4 +192,22 @@ export type SocialLink = {
   platform: "instagram" | "facebook" | "whatsapp" | "tiktok" | "youtube" | string;
   url: string;
   label: string;
+};
+
+export type Customer = {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  document: string;
+  zipCode: string;
+  address: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
 };
