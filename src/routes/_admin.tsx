@@ -372,14 +372,14 @@ function AdminLayout() {
 
   return (
     <AdminDataProvider>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-dvh">
         {/* Sidebar desktop */}
         <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-chocolate-dark/60 bg-chocolate-dark text-cream lg:flex">
           <SidebarNav isAdmin={isAdmin} onLogout={handleLogout} />
         </aside>
 
         {/* Conteúdo */}
-        <div className="flex min-h-screen flex-1 flex-col lg:pl-72">
+        <div className="flex min-h-dvh flex-1 flex-col lg:pl-72">
           {/* Topbar */}
           <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur lg:justify-end lg:px-8">
             <div className="flex items-center gap-2 lg:hidden">
@@ -422,7 +422,7 @@ function AdminLayout() {
             </Link>
           </header>
 
-          <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <main className="min-h-0 flex-1 p-4 sm:p-6 lg:p-8">
             {!isAdmin ? <AdminLoginForm onSuccess={(email) => setUser({ email })} /> : <Outlet />}
           </main>
         </div>

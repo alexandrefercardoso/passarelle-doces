@@ -320,7 +320,7 @@ function PdvMobilePage() {
   }
 
   return (
-    <div className="-mx-4 -mt-4 flex h-[calc(100vh-3.5rem)] flex-col bg-background sm:-mx-6 sm:-mt-6">
+    <div className="-mx-4 -mt-4 flex h-[calc(100dvh-4rem)] flex-col bg-background sm:-mx-6 sm:-mt-6">
       {/* Header */}
       <div className="shrink-0 border-b border-border bg-card px-4 py-3">
         <div className="flex items-center justify-between">
