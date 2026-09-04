@@ -225,7 +225,15 @@ function AdminLoginForm({ onSuccess }: { onSuccess: (email: string) => void }) {
   );
 }
 
-function SidebarNav({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () => void }) {
+function SidebarNav({
+  isAdmin,
+  onNavigate,
+  onLogout,
+}: {
+  isAdmin: boolean;
+  onNavigate?: () => void;
+  onLogout?: () => void;
+}) {
   const pathname = useLocation().href;
 
   return (
@@ -317,7 +325,7 @@ function SidebarNav({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: ()
         {isAdmin && (
           <button
             type="button"
-            onClick={() => void supabase.auth.signOut()}
+            onClick={() => onLogout?.()}
             className="flex w-full items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm text-cream/80 transition-colors hover:bg-cream/10"
           >
             <LogOut className="h-4 w-4" />
@@ -353,12 +361,19 @@ function AdminLayout() {
 
   const isAdmin = !!user;
 
+  const handleLogout = () => {
+    void supabase.auth.signOut().then(() => {
+      setUser(null);
+      setMenuOpen(false);
+    });
+  };
+
   return (
     <AdminDataProvider>
       <div className="flex min-h-screen">
         {/* Sidebar desktop */}
         <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-chocolate-dark/60 bg-chocolate-dark text-cream lg:flex">
-          <SidebarNav isAdmin={isAdmin} />
+          <SidebarNav isAdmin={isAdmin} onLogout={handleLogout} />
         </aside>
 
         {/* Conteúdo */}
@@ -380,7 +395,11 @@ function AdminLayout() {
                   side="left"
                   className="w-[82%] max-w-[300px] border-chocolate-dark/60 bg-chocolate-dark p-0 text-cream sm:w-72"
                 >
-                  <SidebarNav isAdmin={isAdmin} onNavigate={() => setMenuOpen(false)} />
+                  <SidebarNav
+                    isAdmin={isAdmin}
+                    onNavigate={() => setMenuOpen(false)}
+                    onLogout={handleLogout}
+                  />
                 </SheetContent>
               </Sheet>
               <Link to="/admin" className="flex items-center gap-2">
