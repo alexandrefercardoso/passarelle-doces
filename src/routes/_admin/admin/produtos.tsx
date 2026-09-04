@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight, Loader2, Pencil, Plus, Tags, Trash2 } from "lucide-react";
+import { ArrowUpRight, Copy, Loader2, Pencil, Plus, Printer, Tags, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { ImagePicker } from "@/components/admin/image-picker";
+import { printProductCatalog } from "@/components/admin/print-report";
 import { adminDeleteProduct, adminInsertProduct, adminUpdateProduct } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { formatCurrency, slugify } from "@/lib/format";
@@ -39,6 +40,42 @@ function AdminProductsPage() {
   const { products, categories, loading, refresh } = useAdminData();
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
+  const [cloning, setCloning] = useState<ProductFormValues | null>(null);
+
+  const closeForms = () => {
+    setEditing(null);
+    setCreating(false);
+    setCloning(null);
+  };
+
+  const uniqueCloneSlug = (base: string) => {
+    const taken = new Set(products.map((p) => p.slug));
+    let candidate = `${base}-copia`;
+    let i = 2;
+    while (taken.has(candidate)) {
+      candidate = `${base}-copia-${i}`;
+      i += 1;
+    }
+    return candidate;
+  };
+
+  const cloneInto = (p: Product): ProductFormValues => ({
+    categoryId: p.categoryId,
+    name: `${p.name} (cópia)`,
+    slug: uniqueCloneSlug(p.slug),
+    description: p.description,
+    price: p.price,
+    compareAtPrice: p.compareAtPrice,
+    imageUrl: p.imageUrl,
+    gallery: p.gallery,
+    stock: p.stock,
+    minimumStock: p.minimumStock,
+    barcode: p.barcode,
+    isActive: p.isActive,
+    isBestSeller: p.isBestSeller,
+    salesCount: 0,
+    badges: p.badges,
+  });
 
   const afterMutation = async (
     res: { ok: boolean; error?: string },
@@ -76,9 +113,18 @@ function AdminProductsPage() {
             Gerencie os produtos da loja: preços, estoque e destaque.
           </p>
         </div>
-        <Button className="rounded-full" onClick={() => setCreating(true)}>
-          <Plus className="h-4 w-4" /> Novo produto
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={() => printProductCatalog(products, categories)}
+          >
+            <Printer className="h-4 w-4" /> Relatório A4
+          </Button>
+          <Button className="rounded-full" onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" /> Novo produto
+          </Button>
+        </div>
       </div>
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
@@ -134,7 +180,28 @@ function AdminProductsPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.stock}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={cn(
+                        "font-semibold",
+                        p.minimumStock > 0 && p.stock <= p.minimumStock
+                          ? "text-destructive"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {p.stock}
+                    </span>
+                    {p.minimumStock > 0 && (
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        / mín. {p.minimumStock}
+                      </span>
+                    )}
+                    {p.minimumStock > 0 && p.stock <= p.minimumStock && (
+                      <span className="mt-0.5 block text-[10px] font-bold text-destructive">
+                        Estoque baixo
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={cn(
@@ -149,6 +216,19 @@ function AdminProductsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Clonar produto"
+                        title="Clonar produto"
+                        onClick={() => {
+                          setEditing(null);
+                          setCreating(false);
+                          setCloning(cloneInto(p));
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -190,14 +270,13 @@ function AdminProductsPage() {
         )}
       </div>
 
-      {(creating || editing) && (
+      {(creating || editing || cloning) && (
         <ProductForm
-          initial={editing}
+          initial={cloning ?? editing}
+          editId={editing?.id ?? null}
+          isClone={!!cloning}
           categories={categories}
-          onClose={() => {
-            setEditing(null);
-            setCreating(false);
-          }}
+          onClose={closeForms}
           onSubmit={async (data, id) => {
             const res = id
               ? await adminUpdateProduct({ ...data, id })
@@ -217,11 +296,15 @@ function ProductForm({
   categories,
   onClose,
   onSubmit,
+  editId = null,
+  isClone = false,
 }: {
-  initial: Product | null;
+  initial: Omit<Product, "id"> | null;
   categories: { id: string; name: string }[];
   onClose: () => void;
   onSubmit: (data: ProductFormValues, id: string | null) => Promise<void>;
+  editId?: string | null;
+  isClone?: boolean;
 }) {
   const [form, setForm] = useState<ProductFormValues>({
     categoryId: initial?.categoryId ?? categories[0]?.id ?? "",
@@ -233,6 +316,8 @@ function ProductForm({
     imageUrl: initial?.imageUrl ?? "",
     gallery: initial?.gallery ?? [],
     stock: initial?.stock ?? 0,
+    minimumStock: initial?.minimumStock ?? 0,
+    barcode: initial?.barcode ?? "",
     isActive: initial?.isActive ?? true,
     isBestSeller: initial?.isBestSeller ?? false,
     salesCount: initial?.salesCount ?? 0,
@@ -250,7 +335,7 @@ function ProductForm({
     try {
       await onSubmit(
         { ...form, slug: form.slug || slugify(form.name), price: Number(form.price) || 0 },
-        initial?.id ?? null,
+        editId,
       );
     } finally {
       setSaving(false);
@@ -261,11 +346,15 @@ function ProductForm({
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{initial ? "Editar produto" : "Novo produto"}</DialogTitle>
+          <DialogTitle>
+            {isClone ? "Clonar produto" : initial ? "Editar produto" : "Novo produto"}
+          </DialogTitle>
           <DialogDescription>
-            {initial
-              ? "Atualize os dados do produto."
-              : "Os produtos aparecem no catálogo da loja."}
+            {isClone
+              ? "Uma cópia fiel será criada como um novo produto."
+              : initial
+                ? "Atualize os dados do produto."
+                : "Os produtos aparecem no catálogo da loja."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
@@ -321,7 +410,7 @@ function ProductForm({
               />
             </Field>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Estoque">
               <Input
                 type="number"
@@ -330,6 +419,26 @@ function ProductForm({
                 onChange={(e) => set("stock", Number(e.target.value))}
               />
             </Field>
+            <Field label="Estoque mínimo">
+              <Input
+                type="number"
+                min="0"
+                value={form.minimumStock}
+                onChange={(e) => set("minimumStock", Number(e.target.value))}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Alerta quando o estoque estiver abaixo.
+              </p>
+            </Field>
+            <Field label="Código de barras">
+              <Input
+                value={form.barcode ?? ""}
+                onChange={(e) => set("barcode", e.target.value || null)}
+                placeholder="Ex.: 7890000000000"
+              />
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Etiquetas (separadas por vírgula)">
               <Input
                 value={form.badges.join(", ")}
@@ -388,6 +497,8 @@ function ProductForm({
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" /> Salvando...
                 </>
+              ) : isClone ? (
+                "Criar cópia"
               ) : initial ? (
                 "Salvar alterações"
               ) : (

@@ -55,6 +55,8 @@ export type Database = {
           image_url: string;
           gallery: Json | null;
           stock: number | null;
+          minimum_stock: number | null;
+          barcode: string | null;
           is_active: boolean;
           is_best_seller: boolean;
           sales_count: number | null;
@@ -72,6 +74,8 @@ export type Database = {
           image_url: string;
           gallery?: Json | null;
           stock?: number | null;
+          minimum_stock?: number | null;
+          barcode?: string | null;
           is_active?: boolean;
           is_best_seller?: boolean;
           sales_count?: number | null;
@@ -89,6 +93,8 @@ export type Database = {
           image_url?: string;
           gallery?: Json | null;
           stock?: number | null;
+          minimum_stock?: number | null;
+          barcode?: string | null;
           is_active?: boolean;
           is_best_seller?: boolean;
           sales_count?: number | null;

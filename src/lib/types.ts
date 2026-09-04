@@ -19,6 +19,8 @@ export type Product = {
   imageUrl: string;
   gallery: string[];
   stock: number;
+  minimumStock: number;
+  barcode: string | null;
   isActive: boolean;
   isBestSeller: boolean;
   salesCount: number;
