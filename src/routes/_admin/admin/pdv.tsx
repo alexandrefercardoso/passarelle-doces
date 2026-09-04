@@ -326,68 +326,120 @@ function PdvPage() {
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         {/* ============================================= */}
-        {/* LADO DIREITO (pedido) — no mobile aparece acima */}
+        {/* LADO ESQUERDO — Catálogo                      */}
         {/* ============================================= */}
-        <div className="flex max-h-[45vh] shrink-0 flex-col overflow-y-auto border-b border-border bg-card lg:order-2 lg:max-h-none lg:w-[380px] lg:overflow-visible lg:border-b-0 lg:border-l lg:border-t-0">
-          {/* Itens do Pedido */}
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 lg:order-2 lg:max-h-none">
-            {items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center lg:py-12">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted lg:h-14 lg:w-14">
-                  <ShoppingCart className="h-6 w-6 text-muted-foreground/50 lg:h-7 lg:w-7" />
-                </div>
-                <p className="mt-2.5 text-sm font-medium text-foreground">Carrinho vazio</p>
-                <p className="text-xs text-muted-foreground">Selecione um produto no catálogo.</p>
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {items.map((item) => (
-                  <li
-                    key={item.productId}
-                    className="flex items-center gap-2.5 rounded-xl border border-border bg-background p-2.5 transition-colors hover:border-gold/50"
-                  >
-                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-cream lg:h-12 lg:w-12">
-                      <ProductImage src={item.imageUrl} alt={item.name} emoji="🧁" />
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <p className="line-clamp-1 text-xs font-semibold text-foreground">
-                        {item.name}
-                      </p>
-                      <p className="text-xs font-bold text-chocolate-dark">
-                        {formatCurrency(item.price)}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-0.5">
-                      <button
-                        onClick={() => updateQty(item.productId, item.quantity - 1)}
-                        className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-gold hover:text-foreground lg:h-7 lg:w-7"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </button>
-                      <span className="w-6 text-center text-sm font-bold lg:w-7">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() => updateQty(item.productId, item.quantity + 1)}
-                        className="flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-gold hover:text-foreground lg:h-7 lg:w-7"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={() => removeItem(item.productId)}
-                        className="ml-0.5 flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive lg:h-7 lg:w-7"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+        <div className="flex min-h-0 flex-1 flex-col border-r border-border bg-background">
+          {/* Busca */}
+          <div className="shrink-0 border-b border-border px-4 py-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar produto..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+              />
+            </div>
           </div>
 
+          {/* Categorias */}
+          <div className="no-scrollbar shrink-0 flex gap-1.5 overflow-x-auto border-b border-border px-4 py-2.5">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={cn(
+                "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
+                !selectedCategory
+                  ? "bg-chocolate text-cream"
+                  : "border border-border text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Todos
+            </button>
+            {categories
+              .filter((c) => c.isActive)
+              .sort((a, b) => a.sortOrder - b.sortOrder)
+              .map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={cn(
+                    "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
+                    selectedCategory === cat.id
+                      ? "bg-chocolate text-cream"
+                      : "border border-border text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {cat.name}
+                </button>
+              ))}
+          </div>
+
+          {/* Grid de Produtos */}
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            {filteredProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <PackageSearch className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <p className="mt-4 text-sm font-medium text-foreground">
+                  Nenhum produto encontrado
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Tente buscar por outro nome ou selecione outra categoria.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredProducts.map((product) => (
+                  <button
+                    key={product.id}
+                    onClick={() => addItem(product)}
+                    className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-md"
+                  >
+                    <div className="aspect-square w-full overflow-hidden bg-cream">
+                      <ProductImage
+                        src={product.imageUrl}
+                        alt={product.name}
+                        emoji="🧁"
+                        className="transition-transform duration-300 group-hover:scale-110"
+                        sizes="200px"
+                      />
+                    </div>
+                    <div className="flex flex-1 flex-col p-2.5 text-left">
+                      <p className="line-clamp-2 text-xs font-semibold text-foreground leading-tight">
+                        {product.name}
+                      </p>
+                      <div className="mt-auto pt-1.5">
+                        {product.compareAtPrice && product.compareAtPrice > product.price ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-bold text-chocolate-dark">
+                              {formatCurrency(product.price)}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground line-through">
+                              {formatCurrency(product.compareAtPrice)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm font-bold text-chocolate-dark">
+                            {formatCurrency(product.price)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ============================================= */}
+        {/* LADO DIREITO — Pedido                         */}
+        {/* ============================================= */}
+        <div className="flex w-full flex-col border-t border-border bg-card lg:w-[380px] lg:border-t-0">
           {/* Cliente */}
-          <div className="shrink-0 border-b border-border px-4 py-3 lg:order-1">
+          <div className="shrink-0 border-b border-border px-4 py-3">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Cliente
@@ -448,8 +500,63 @@ function PdvPage() {
             )}
           </div>
 
+          {/* Itens do Pedido */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+            {items.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                  <ShoppingCart className="h-7 w-7 text-muted-foreground/50" />
+                </div>
+                <p className="mt-3 text-sm font-medium text-foreground">Carrinho vazio</p>
+                <p className="text-xs text-muted-foreground">Selecione um produto no catálogo.</p>
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {items.map((item) => (
+                  <li
+                    key={item.productId}
+                    className="flex items-center gap-2.5 rounded-xl border border-border bg-background p-2.5 transition-colors hover:border-gold/50"
+                  >
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-cream">
+                      <ProductImage src={item.imageUrl} alt={item.name} emoji="🧁" />
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <p className="line-clamp-1 text-xs font-semibold text-foreground">
+                        {item.name}
+                      </p>
+                      <p className="text-xs font-bold text-chocolate-dark">
+                        {formatCurrency(item.price)}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-0.5">
+                      <button
+                        onClick={() => updateQty(item.productId, item.quantity - 1)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-gold hover:text-foreground"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="w-7 text-center text-sm font-bold">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQty(item.productId, item.quantity + 1)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-gold hover:text-foreground"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => removeItem(item.productId)}
+                        className="ml-0.5 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           {/* Rodapé */}
-          <div className="shrink-0 border-t border-border px-4 py-4 lg:order-3">
+          <div className="shrink-0 border-t border-border px-4 py-4">
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between text-muted-foreground">
                 <span>Subtotal</span>
@@ -501,115 +608,6 @@ function PdvPage() {
                 </>
               )}
             </Button>
-          </div>
-        </div>
-
-        {/* ============================================= */}
-        {/* LADO ESQUERDO — Catálogo (abaixo no mobile)   */}
-        {/* ============================================= */}
-        <div className="flex min-h-0 flex-1 flex-col border-b border-border bg-background lg:order-1 lg:border-b-0 lg:border-r">
-          {/* Busca */}
-          <div className="shrink-0 border-b border-border px-4 py-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Buscar produto..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
-              />
-            </div>
-          </div>
-
-          {/* Categorias */}
-          <div className="no-scrollbar shrink-0 flex gap-1.5 overflow-x-auto border-b border-border px-4 py-2.5">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={cn(
-                "shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold transition-colors sm:px-3.5 sm:py-1.5 sm:text-xs",
-                !selectedCategory
-                  ? "bg-chocolate text-cream"
-                  : "border border-border text-muted-foreground hover:text-foreground",
-              )}
-            >
-              Todos
-            </button>
-            {categories
-              .filter((c) => c.isActive)
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={cn(
-                    "shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold transition-colors sm:px-3.5 sm:py-1.5 sm:text-xs",
-                    selectedCategory === cat.id
-                      ? "bg-chocolate text-cream"
-                      : "border border-border text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {cat.name}
-                </button>
-              ))}
-          </div>
-
-          {/* Grid de Produtos */}
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">
-            {filteredProducts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center lg:py-20">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted lg:h-16 lg:w-16">
-                  <PackageSearch className="h-7 w-7 text-muted-foreground lg:h-8 lg:w-8" />
-                </div>
-                <p className="mt-4 text-sm font-medium text-foreground">
-                  Nenhum produto encontrado
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Tente buscar por outro nome ou selecione outra categoria.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredProducts.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => addItem(product)}
-                    className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-md"
-                  >
-                    <div className="aspect-square w-full overflow-hidden bg-cream">
-                      <ProductImage
-                        src={product.imageUrl}
-                        alt={product.name}
-                        emoji="🧁"
-                        className="transition-transform duration-300 group-hover:scale-110"
-                        sizes="200px"
-                      />
-                    </div>
-                    <div className="flex flex-1 flex-col p-2.5 text-left">
-                      <p className="line-clamp-2 text-xs font-semibold text-foreground leading-tight">
-                        {product.name}
-                      </p>
-                      <div className="mt-auto pt-1.5">
-                        {product.compareAtPrice && product.compareAtPrice > product.price ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-bold text-chocolate-dark">
-                              {formatCurrency(product.price)}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground line-through">
-                              {formatCurrency(product.compareAtPrice)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-sm font-bold text-chocolate-dark">
-                            {formatCurrency(product.price)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
