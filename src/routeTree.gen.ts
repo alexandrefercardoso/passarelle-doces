@@ -32,6 +32,7 @@ import { Route as AdminAdminConfiguracoesRouteImport } from './routes/_admin/adm
 import { Route as AdminAdminFinanceiroRouteImport } from './routes/_admin/admin/financeiro'
 import { Route as AdminAdminInstagramPostsRouteImport } from './routes/_admin/admin/instagram-posts'
 import { Route as AdminAdminPdvRouteImport } from './routes/_admin/admin/pdv'
+import { Route as AdminAdminPdvMobileRouteImport } from './routes/_admin/admin/pdv-mobile'
 import { Route as AdminAdminPedidosRouteImport } from './routes/_admin/admin/pedidos'
 import { Route as AdminAdminProdutosRouteImport } from './routes/_admin/admin/produtos'
 import { Route as AdminAdminRelatoriosRouteImport } from './routes/_admin/admin/relatorios'
@@ -157,6 +158,11 @@ const AdminAdminPdvRoute = AdminAdminPdvRouteImport.update({
   path: '/admin/pdv',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminPdvMobileRoute = AdminAdminPdvMobileRouteImport.update({
+  id: '/admin/pdv-mobile',
+  path: '/admin/pdv-mobile',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdminPedidosRoute = AdminAdminPedidosRouteImport.update({
   id: '/admin/pedidos',
   path: '/admin/pedidos',
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/admin/financeiro': typeof AdminAdminFinanceiroRoute
   '/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
   '/admin/pdv': typeof AdminAdminPdvRoute
+  '/admin/pdv-mobile': typeof AdminAdminPdvMobileRoute
   '/admin/pedidos': typeof AdminAdminPedidosRouteWithChildren
   '/admin/produtos': typeof AdminAdminProdutosRoute
   '/admin/relatorios': typeof AdminAdminRelatoriosRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/admin/financeiro': typeof AdminAdminFinanceiroRoute
   '/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
   '/admin/pdv': typeof AdminAdminPdvRoute
+  '/admin/pdv-mobile': typeof AdminAdminPdvMobileRoute
   '/admin/pedidos': typeof AdminAdminPedidosRouteWithChildren
   '/admin/produtos': typeof AdminAdminProdutosRoute
   '/admin/relatorios': typeof AdminAdminRelatoriosRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/_admin/admin/financeiro': typeof AdminAdminFinanceiroRoute
   '/_admin/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
   '/_admin/admin/pdv': typeof AdminAdminPdvRoute
+  '/_admin/admin/pdv-mobile': typeof AdminAdminPdvMobileRoute
   '/_admin/admin/pedidos': typeof AdminAdminPedidosRouteWithChildren
   '/_admin/admin/produtos': typeof AdminAdminProdutosRoute
   '/_admin/admin/relatorios': typeof AdminAdminRelatoriosRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/admin/financeiro'
     | '/admin/instagram-posts'
     | '/admin/pdv'
+    | '/admin/pdv-mobile'
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/relatorios'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/financeiro'
     | '/admin/instagram-posts'
     | '/admin/pdv'
+    | '/admin/pdv-mobile'
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/relatorios'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/_admin/admin/financeiro'
     | '/_admin/admin/instagram-posts'
     | '/_admin/admin/pdv'
+    | '/_admin/admin/pdv-mobile'
     | '/_admin/admin/pedidos'
     | '/_admin/admin/produtos'
     | '/_admin/admin/relatorios'
@@ -572,6 +584,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminPdvRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/pdv-mobile': {
+      id: '/_admin/admin/pdv-mobile'
+      path: '/admin/pdv-mobile'
+      fullPath: '/admin/pdv-mobile'
+      preLoaderRoute: typeof AdminAdminPdvMobileRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/admin/pedidos': {
       id: '/_admin/admin/pedidos'
       path: '/admin/pedidos'
@@ -657,6 +676,7 @@ interface AdminRouteChildren {
   AdminAdminFinanceiroRoute: typeof AdminAdminFinanceiroRoute
   AdminAdminInstagramPostsRoute: typeof AdminAdminInstagramPostsRoute
   AdminAdminPdvRoute: typeof AdminAdminPdvRoute
+  AdminAdminPdvMobileRoute: typeof AdminAdminPdvMobileRoute
   AdminAdminPedidosRoute: typeof AdminAdminPedidosRouteWithChildren
   AdminAdminProdutosRoute: typeof AdminAdminProdutosRoute
   AdminAdminRelatoriosRoute: typeof AdminAdminRelatoriosRoute
@@ -671,6 +691,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminFinanceiroRoute: AdminAdminFinanceiroRoute,
   AdminAdminInstagramPostsRoute: AdminAdminInstagramPostsRoute,
   AdminAdminPdvRoute: AdminAdminPdvRoute,
+  AdminAdminPdvMobileRoute: AdminAdminPdvMobileRoute,
   AdminAdminPedidosRoute: AdminAdminPedidosRouteWithChildren,
   AdminAdminProdutosRoute: AdminAdminProdutosRoute,
   AdminAdminRelatoriosRoute: AdminAdminRelatoriosRoute,

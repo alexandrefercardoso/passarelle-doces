@@ -16,6 +16,7 @@ import {
   ReceiptText,
   Settings,
   ShoppingCart,
+  Smartphone,
   Sparkles,
   Tags,
   Users,
@@ -74,6 +75,7 @@ const navGroups: NavGroup[] = [
     title: "Vendas",
     items: [
       { to: "/admin/pdv", label: "PDV", icon: ShoppingCart },
+      { to: "/admin/pdv-mobile", label: "PDV Mobile", icon: Smartphone },
       { to: "/admin/pedidos", label: "Pedidos", icon: ReceiptText },
       { to: "/admin/clientes", label: "Clientes", icon: Users },
       { to: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
