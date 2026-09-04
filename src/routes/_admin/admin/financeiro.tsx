@@ -17,15 +17,16 @@ import {
 } from "recharts";
 import {
   Banknote,
+  CalendarDays,
   CheckCircle2,
   Clock,
-  CreditCard,
   DollarSign,
   Package,
   TrendingUp,
   XCircle,
   Filter,
   Loader2,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -78,8 +79,30 @@ const METHOD_COLORS: Record<string, string> = {
 function AdminFinanceiroPage() {
   const [tab, setTab] = useState<TabType>("dashboard");
   const { data: allOrders, isLoading } = useAllOrders();
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
   const orders = useMemo(() => allOrders ?? [], [allOrders]);
+
+  const hasDateFilter = startDate !== "" || endDate !== "";
+
+  // Filtra os pedidos pelo período selecionado (data de criação)
+  const filteredOrders = useMemo(() => {
+    if (!hasDateFilter) return orders;
+    return orders.filter((o) => {
+      const created = new Date(o.createdAt);
+      const start = new Date(`${startDate}T00:00:00`);
+      const end = new Date(`${endDate}T23:59:59.999`);
+      if (startDate && created < start) return false;
+      if (endDate && created > end) return false;
+      return true;
+    });
+  }, [orders, startDate, endDate, hasDateFilter]);
+
+  const clearDates = () => {
+    setStartDate("");
+    setEndDate("");
+  };
 
   if (isLoading) {
     return <div className="h-96 animate-pulse rounded-2xl bg-muted" />;
@@ -122,11 +145,120 @@ function AdminFinanceiroPage() {
         </div>
       </div>
 
+      <DateRangeFilter
+        startDate={startDate}
+        endDate={endDate}
+        onStartChange={setStartDate}
+        onEndChange={setEndDate}
+        onClear={clearDates}
+        hasFilter={hasDateFilter}
+      />
+
       {tab === "dashboard" ? (
-        <DashboardTab orders={orders} />
+        <DashboardTab orders={filteredOrders} periodStart={startDate} periodEnd={endDate} />
       ) : (
-        <ContasReceberTab orders={orders} />
+        <ContasReceberTab orders={filteredOrders} />
       )}
+    </div>
+  );
+}
+
+/* ================================================================== */
+/* FILTRO DE PERÍODO                                                   */
+/* ================================================================== */
+
+function DateRangeFilter({
+  startDate,
+  endDate,
+  onStartChange,
+  onEndChange,
+  onClear,
+  hasFilter,
+}: {
+  startDate: string;
+  endDate: string;
+  onStartChange: (v: string) => void;
+  onEndChange: (v: string) => void;
+  onClear: () => void;
+  hasFilter: boolean;
+}) {
+  const applyPreset = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - (days - 1));
+    onStartChange(start.toISOString().slice(0, 10));
+    onEndChange(end.toISOString().slice(0, 10));
+  };
+
+  return (
+    <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="border-b border-border bg-gradient-to-r from-chocolate to-chocolate-dark px-5 py-3">
+        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-gold">
+          <CalendarDays className="h-4 w-4" />
+          Filtrar por período
+        </p>
+      </div>
+      <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Data inicial
+          </label>
+          <input
+            type="date"
+            value={startDate}
+            max={endDate || undefined}
+            onChange={(e) => onStartChange(e.target.value)}
+            className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+          />
+        </div>
+        <div className="pb-3 text-muted-foreground">
+          <span className="text-lg">–</span>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Data final
+          </label>
+          <input
+            type="date"
+            value={endDate}
+            min={startDate || undefined}
+            onChange={(e) => onEndChange(e.target.value)}
+            className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+          />
+        </div>
+
+        <div className="flex items-center gap-1.5 pb-1">
+          <span className="hidden text-xs text-muted-foreground sm:inline">Atalhos:</span>
+          <button
+            onClick={() => applyPreset(1)}
+            className="rounded-full bg-cream px-3 py-1.5 text-xs font-semibold text-chocolate-dark transition-colors hover:bg-gold-soft"
+          >
+            Hoje
+          </button>
+          <button
+            onClick={() => applyPreset(7)}
+            className="rounded-full bg-cream px-3 py-1.5 text-xs font-semibold text-chocolate-dark transition-colors hover:bg-gold-soft"
+          >
+            7 dias
+          </button>
+          <button
+            onClick={() => applyPreset(30)}
+            className="rounded-full bg-cream px-3 py-1.5 text-xs font-semibold text-chocolate-dark transition-colors hover:bg-gold-soft"
+          >
+            30 dias
+          </button>
+        </div>
+
+        {hasFilter && (
+          <button
+            onClick={onClear}
+            className="ml-auto flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-gold hover:text-chocolate-dark"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Limpar
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -135,7 +267,30 @@ function AdminFinanceiroPage() {
 /* DASHBOARD                                                           */
 /* ================================================================== */
 
-function DashboardTab({ orders }: { orders: Order[] }) {
+function DashboardTab({
+  orders,
+  periodStart,
+  periodEnd,
+}: {
+  orders: Order[];
+  periodStart: string;
+  periodEnd: string;
+}) {
+  const periodLabel = useMemo(() => {
+    if (!periodStart && !periodEnd) return "Todos os períodos";
+    const fmt = (d: string) =>
+      d
+        ? new Date(`${d}T00:00:00`).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
+        : "";
+    if (periodStart && periodEnd) return `${fmt(periodStart)} — ${fmt(periodEnd)}`;
+    if (periodStart) return `a partir de ${fmt(periodStart)}`;
+    return `até ${fmt(periodEnd)}`;
+  }, [periodStart, periodEnd]);
+
   const kpis = useMemo(() => {
     const confirmed = orders.filter(
       (o) => o.status !== "cancelado" && o.paymentStatus !== "cancelado",
@@ -151,7 +306,10 @@ function DashboardTab({ orders }: { orders: Order[] }) {
   }, [orders]);
 
   const monthlyData = useMemo(() => {
-    const map = new Map<string, { receita: number; pedidos: number; label: string; monthLabel: string }>();
+    const map = new Map<
+      string,
+      { receita: number; pedidos: number; label: string; monthLabel: string }
+    >();
     const confirmed = orders.filter(
       (o) => o.status !== "cancelado" && o.paymentStatus !== "cancelado",
     );
@@ -192,7 +350,14 @@ function DashboardTab({ orders }: { orders: Order[] }) {
   const recentOrders = useMemo(() => orders.slice(0, 8), [orders]);
 
   return (
-    <div className="mt-6 space-y-6">
+    <div className="mt-4 space-y-6">
+      {periodLabel !== "Todos os períodos" && (
+        <div className="flex items-center gap-2 rounded-xl border border-gold/30 bg-gold-soft/40 px-4 py-2.5 text-xs font-medium text-chocolate-dark">
+          <CalendarDays className="h-4 w-4 text-gold-dark" />
+          Exibindo dados do período: <span className="font-bold">{periodLabel}</span>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
@@ -271,7 +436,9 @@ function DashboardTab({ orders }: { orders: Order[] }) {
         <div className="space-y-6">
           {/* Status de Pagamento */}
           <div className="rounded-2xl border border-border bg-card p-5">
-            <h3 className="font-display text-sm font-bold text-foreground">Status dos Pagamentos</h3>
+            <h3 className="font-display text-sm font-bold text-foreground">
+              Status dos Pagamentos
+            </h3>
             <div className="mt-3 h-44">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -392,16 +559,16 @@ function DashboardTab({ orders }: { orders: Order[] }) {
             <TableBody>
               {recentOrders.map((o) => (
                 <TableRow key={o.id}>
-                  <TableCell className="font-medium text-foreground">
-                    #{o.id.slice(0, 8)}
-                  </TableCell>
+                  <TableCell className="font-medium text-foreground">#{o.id.slice(0, 8)}</TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground">
                     {formatDateTime(o.createdAt)}
                   </TableCell>
                   <TableCell className="max-w-[140px] truncate text-foreground">
                     {o.customer.name}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{paymentLabel(o.paymentMethod)}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {paymentLabel(o.paymentMethod)}
+                  </TableCell>
                   <TableCell>
                     <PaymentBadge status={o.paymentStatus} />
                   </TableCell>
@@ -423,7 +590,9 @@ function DashboardTab({ orders }: { orders: Order[] }) {
 /* ================================================================== */
 
 function ContasReceberTab({ orders }: { orders: Order[] }) {
-  const [filter, setFilter] = useState<"todos" | "pendente" | "aprovado" | "recusado" | "cancelado">("todos");
+  const [filter, setFilter] = useState<
+    "todos" | "pendente" | "aprovado" | "recusado" | "cancelado"
+  >("todos");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -473,7 +642,9 @@ function ContasReceberTab({ orders }: { orders: Order[] }) {
           icon={<Clock className="h-5 w-5" />}
           label="A Receber"
           value={formatCurrency(summary.pendente)}
-          count={orders.filter((o) => o.paymentStatus === "pendente" && o.status !== "cancelado").length}
+          count={
+            orders.filter((o) => o.paymentStatus === "pendente" && o.status !== "cancelado").length
+          }
           color="text-amber-600"
           bg="bg-amber-500/10"
         />

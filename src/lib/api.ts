@@ -757,14 +757,21 @@ export async function adminFetchAll(): Promise<{
   categories: Category[];
   banners: Banner[];
   instagramPosts: InstagramPost[];
+  orders: Order[];
 }> {
-  const [{ data: products }, { data: categories }, { data: banners }, { data: instagramPosts }] =
-    await Promise.all([
-      supabase.from("products").select("*").order("created_at", { ascending: false }),
-      supabase.from("categories").select("*").order("sort_order", { ascending: true }),
-      supabase.from("banners").select("*").order("sort_order", { ascending: true }),
-      supabase.from("instagram_posts").select("*").order("sort_order", { ascending: true }),
-    ]);
+  const [
+    { data: products },
+    { data: categories },
+    { data: banners },
+    { data: instagramPosts },
+    { data: orders },
+  ] = await Promise.all([
+    supabase.from("products").select("*").order("created_at", { ascending: false }),
+    supabase.from("categories").select("*").order("sort_order", { ascending: true }),
+    supabase.from("banners").select("*").order("sort_order", { ascending: true }),
+    supabase.from("instagram_posts").select("*").order("sort_order", { ascending: true }),
+    supabase.from("orders").select("*").order("created_at", { ascending: false }),
+  ]);
   return {
     products: (products ?? []).map((row) => mapProduct(row as Record<string, unknown>)),
     categories: (categories ?? []).map((row) => mapCategory(row as Record<string, unknown>)),
@@ -772,5 +779,6 @@ export async function adminFetchAll(): Promise<{
     instagramPosts: (instagramPosts ?? []).map((row) =>
       mapInstagramPost(row as Record<string, unknown>),
     ),
+    orders: (orders ?? []).map((row) => mapOrder(row as Record<string, unknown>)),
   };
 }
