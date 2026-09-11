@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   ArrowLeft,
@@ -13,6 +13,7 @@ import {
   Pencil,
   Plus,
   Printer,
+  Receipt,
   Search,
   ShoppingCart,
   Trash2,
@@ -23,9 +24,9 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAdminData } from "@/hooks/use-admin-data";
-import { adminSaveCustomer, adminDeleteCustomer } from "@/lib/api";
+import { adminSaveCustomer, adminDeleteCustomer, fetchAllOrders } from "@/lib/api";
 import { printOrderReceipt } from "@/components/admin/print-report";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ProductImage } from "@/components/store/product-image";
 import type { Order, Customer, CustomerInfo, PaymentOption, Product } from "@/lib/types";
@@ -77,7 +78,7 @@ const PDV_PAYMENTS: PaymentOption[] = [
   { id: "dinheiro", name: "Dinheiro", description: "Pagamento na entrega", type: "imediato" },
 ];
 
-type PdvStep = "products" | "customer" | "payment";
+type PdvStep = "products" | "customer" | "payment" | "orders";
 
 /* ================================================================== */
 
@@ -99,6 +100,26 @@ export function PdvMobilePage() {
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [printOrder, setPrintOrder] = useState<Order | null>(null);
 
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersSearch, setOrdersSearch] = useState("");
+
+  const loadOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    try {
+      const loaded = await fetchAllOrders();
+      setOrders(loaded);
+    } catch {
+      setOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (step === "orders") void loadOrders();
+  }, [step, loadOrders]);
+
   const activeProducts = useMemo(() => products.filter((p) => p.isActive), [products]);
 
   const filteredProducts = useMemo(() => {
@@ -114,6 +135,14 @@ export function PdvMobilePage() {
     }
     return list;
   }, [activeProducts, selectedCategory, searchQuery]);
+
+  const filteredOrders = useMemo(() => {
+    const q = ordersSearch.trim().toLowerCase();
+    if (!q) return orders;
+    return orders.filter(
+      (o) => o.id.toLowerCase().includes(q) || (o.customer?.name ?? "").toLowerCase().includes(q),
+    );
+  }, [orders, ordersSearch]);
 
   const addItem = (product: Product) => {
     setItems((prev) => {
@@ -380,7 +409,7 @@ export function PdvMobilePage() {
       {/* ============ ETAPA 1 — PRODUTOS ============ */}
       {step === "products" && (
         <>
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-3">
             {/* Categorias */}
             <div className="no-scrollbar sticky top-0 z-10 flex gap-0.5 overflow-x-auto border-b border-border bg-background/95 px-2 py-1.5 backdrop-blur">
               <button
@@ -498,7 +527,7 @@ export function PdvMobilePage() {
       {/* ============ ETAPA 2 — CLIENTE ============ */}
       {step === "customer" && (
         <>
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-3">
             {/* Cliente */}
             <div className="border-b border-border bg-card px-2.5 py-2">
               <div className="flex items-center justify-between">
@@ -656,7 +685,7 @@ export function PdvMobilePage() {
       {/* ============ ETAPA 3 — PAGAMENTO ============ */}
       {step === "payment" && (
         <>
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-3">
             {/* Resumo cliente */}
             <div className="flex items-center gap-2 border-b border-border bg-card px-2.5 py-2">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chocolate/10 font-display text-[11px] font-bold text-chocolate">
@@ -810,6 +839,162 @@ export function PdvMobilePage() {
           </div>
         </>
       )}
+
+      {/* ============ ETAPA 4 — PEDIDOS ============ */}
+      {step === "orders" && (
+        <div className="min-h-0 flex-1 overflow-y-auto pb-16">
+          {/* Busca */}
+          <div className="border-b border-border px-2 py-1.5">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar pedido ou cliente..."
+                value={ordersSearch}
+                onChange={(e) => setOrdersSearch(e.target.value)}
+                className="h-8 w-full rounded-lg border border-border bg-card pl-7 pr-2.5 text-[11px] outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+              />
+            </div>
+          </div>
+
+          {/* Lista */}
+          <div className="p-2">
+            {ordersLoading ? (
+              <div className="flex flex-col items-center justify-center py-14 text-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-chocolate border-t-transparent" />
+                <p className="mt-2.5 text-xs text-muted-foreground">Carregando pedidos...</p>
+              </div>
+            ) : filteredOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-14 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                  <Receipt className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="mt-2.5 text-sm font-medium text-foreground">
+                  Nenhum pedido encontrado
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Os pedidos realizados no PDV aparecerão aqui.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {filteredOrders.map((order) => {
+                  const isPdv = order.source === "pdv";
+                  const pm =
+                    PDV_PAYMENTS.find((p) => p.id === order.paymentMethod)?.name ??
+                    order.paymentMethod;
+                  return (
+                    <div
+                      key={order.id}
+                      className="flex items-center gap-1.5 rounded-lg border border-border bg-card p-2"
+                    >
+                      <div
+                        className={cn(
+                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                          isPdv ? "bg-chocolate/10 text-chocolate" : "bg-blue-50 text-blue-700",
+                        )}
+                      >
+                        {isPdv ? (
+                          <Receipt className="h-4 w-4" />
+                        ) : (
+                          <ShoppingCart className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[11px] font-bold text-foreground">{order.id}</p>
+                        <p className="truncate text-[10px] text-muted-foreground">
+                          {order.customer?.name || "Cliente não informado"}
+                        </p>
+                        <div className="mt-0.5 flex items-center gap-1">
+                          <span className="rounded-full bg-gold-soft/60 px-1.5 py-0.5 text-[9px] font-semibold text-chocolate-dark">
+                            {pm}
+                          </span>
+                          <span className="text-[9px] text-muted-foreground">
+                            {formatDateTime(order.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <p className="font-display text-[11px] font-extrabold text-chocolate-dark">
+                          {formatCurrency(order.total)}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => printOrderReceipt(order)}
+                          className="flex items-center gap-0.5 rounded-full bg-chocolate px-1.5 py-0.5 text-[9px] font-semibold text-cream transition-colors hover:bg-chocolate-dark"
+                        >
+                          <Printer className="h-2.5 w-2.5" />
+                          Reimprimir
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Nav fixa */}
+      <nav className="shrink-0 border-t border-border bg-card px-1 pb-[calc(env(safe-area-inset-bottom)+0.4rem)] pt-1.5">
+        <div className="grid grid-cols-4 gap-1">
+          {(
+            [
+              { id: "products", label: "Produtos", icon: PackageSearch },
+              { id: "cart", label: "Carrinho", icon: ShoppingCart },
+              { id: "orders", label: "Pedidos", icon: Receipt },
+              { id: "customer", label: "Cliente", icon: User },
+            ] as { id: PdvStep | "cart"; label: string; icon: typeof PackageSearch }[]
+          ).map((item) => {
+            const isCart = item.id === "cart";
+            const active =
+              item.id === "products"
+                ? step === "products"
+                : item.id === "cart"
+                  ? step === "customer" && items.length > 0
+                  : item.id === "orders"
+                    ? step === "orders"
+                    : item.id === "customer" && !!selectedCustomer;
+            const handleClick = () => {
+              if (isCart) {
+                if (items.length === 0) {
+                  toast.error("Carrinho vazio", {
+                    description: "Adicione produtos ao pedido primeiro.",
+                  });
+                  return;
+                }
+                setStep("customer");
+                return;
+              }
+              setStep(item.id as PdvStep);
+            };
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={handleClick}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 rounded-xl py-1.5 transition-colors",
+                  active
+                    ? "bg-chocolate text-cream"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <span className="relative">
+                  <item.icon className="h-4 w-4" />
+                  {isCart && items.length > 0 && (
+                    <span className="absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-gold px-0.5 text-[8px] font-bold text-chocolate-dark shadow">
+                      {items.length}
+                    </span>
+                  )}
+                </span>
+                <span className="text-[8px] font-bold uppercase tracking-wider">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
       {/* Dialogs */}
       <CustomerDialog
