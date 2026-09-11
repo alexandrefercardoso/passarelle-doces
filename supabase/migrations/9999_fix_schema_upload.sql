@@ -17,12 +17,8 @@ alter table public.admin_emails enable row level security;
 drop policy if exists "Admins gerenciam a lista de e-mails" on public.admin_emails;
 create policy "Admins gerenciam a lista de e-mails"
   on public.admin_emails for all
-  using (
-    exists (select 1 from public.admin_emails a where a.email = auth.jwt() ->> 'email')
-  )
-  with check (
-    exists (select 1 from public.admin_emails a where a.email = auth.jwt() ->> 'email')
-  );
+  using (public.is_admin())
+  with check (public.is_admin());
 
 delete from public.admin_emails
   where email not in ('alejandrecardoso@gmail.com');
@@ -145,7 +141,7 @@ create policy "Admins fazem upload de imagens de produtos"
   on storage.objects for insert
   with check (
     bucket_id = 'product-images'
-    and exists (select 1 from public.admin_emails a where a.email = auth.jwt() ->> 'email')
+    and public.is_admin()
   );
 
 drop policy if exists "Admins atualizam imagens de produtos" on storage.objects;
@@ -153,7 +149,7 @@ create policy "Admins atualizam imagens de produtos"
   on storage.objects for update
   using (
     bucket_id = 'product-images'
-    and exists (select 1 from public.admin_emails a where a.email = auth.jwt() ->> 'email')
+    and public.is_admin()
   );
 
 drop policy if exists "Admins deletam imagens de produtos" on storage.objects;
@@ -161,7 +157,7 @@ create policy "Admins deletam imagens de produtos"
   on storage.objects for delete
   using (
     bucket_id = 'product-images'
-    and exists (select 1 from public.admin_emails a where a.email = auth.jwt() ->> 'email')
+    and public.is_admin()
   );
 
 drop policy if exists "Leitura pública de imagens do site" on storage.objects;
@@ -174,7 +170,7 @@ create policy "Admins fazem upload de imagens do site"
   on storage.objects for insert
   with check (
     bucket_id = 'site-images'
-    and exists (select 1 from public.admin_emails a where a.email = auth.jwt() ->> 'email')
+    and public.is_admin()
   );
 
 drop policy if exists "Admins atualizam imagens do site" on storage.objects;
@@ -182,7 +178,7 @@ create policy "Admins atualizam imagens do site"
   on storage.objects for update
   using (
     bucket_id = 'site-images'
-    and exists (select 1 from public.admin_emails a where a.email = auth.jwt() ->> 'email')
+    and public.is_admin()
   );
 
 drop policy if exists "Admins deletam imagens do site" on storage.objects;
@@ -190,5 +186,5 @@ create policy "Admins deletam imagens do site"
   on storage.objects for delete
   using (
     bucket_id = 'site-images'
-    and exists (select 1 from public.admin_emails a where a.email = auth.jwt() ->> 'email')
+    and public.is_admin()
   );
