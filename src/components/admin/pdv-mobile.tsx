@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   ArrowLeft,
@@ -18,6 +18,7 @@ import {
   ShoppingCart,
   Trash2,
   User,
+  Users,
   UserPlus,
   X,
 } from "lucide-react";
@@ -580,11 +581,77 @@ export function PdvMobilePage() {
                   </button>
                 </div>
               ) : (
-                <CustomerSearch
-                  customers={customers}
-                  onSelect={setSelectedCustomer}
-                  onDelete={handleDeleteCustomer}
-                />
+                <>
+                  {/* Faixa horizontal de clientes */}
+                  <div className="mt-1.5">
+                    <div className="mb-0.5 flex items-center justify-between px-0.5">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Clientes
+                      </p>
+                      <button
+                        onClick={() => {
+                          setEditingCustomer(null);
+                          setShowCustomerDialog(true);
+                        }}
+                        className="flex items-center gap-0.5 text-[10px] font-semibold text-gold-dark hover:text-chocolate-dark"
+                      >
+                        <UserPlus className="h-2.5 w-2.5" />
+                        Novo
+                      </button>
+                    </div>
+                    <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+                      {customers.length === 0 ? (
+                        <div className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-border py-4 text-center">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <p className="mt-1.5 text-[11px] font-medium text-foreground">
+                            Nenhum cliente cadastrado
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            Toque em "Novo" para cadastrar um cliente.
+                          </p>
+                        </div>
+                      ) : (
+                        customers.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => setSelectedCustomer(c)}
+                            className="flex w-[136px] shrink-0 flex-col rounded-xl border border-border bg-card p-2 text-left transition-colors hover:border-gold"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chocolate/10 font-display text-[11px] font-bold text-chocolate">
+                                {c.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground">
+                                <Check className="h-2.5 w-2.5" />
+                              </div>
+                            </div>
+                            <p className="mt-1.5 line-clamp-1 text-[11px] font-bold text-foreground">
+                              {c.name}
+                            </p>
+                            <p className="line-clamp-1 text-[10px] text-muted-foreground">
+                              {c.phone}
+                            </p>
+                            <p className="line-clamp-1 text-[9px] text-muted-foreground/80">
+                              {c.document ? c.document : c.email}
+                            </p>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                    <div className="px-0.5 pt-0.5 text-[9px] text-muted-foreground">
+                      Toque em um cliente para selecioná-lo
+                    </div>
+                  </div>
+
+                  <CustomerSearch
+                    customers={customers}
+                    onSelect={setSelectedCustomer}
+                    onDelete={handleDeleteCustomer}
+                  />
+                </>
               )}
             </div>
 
