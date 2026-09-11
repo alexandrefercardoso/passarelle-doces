@@ -706,7 +706,7 @@ export async function deleteProductImage(url: string): Promise<{ ok: boolean; er
   try {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split("/");
-    const fileName = pathParts[pathParts.length - 1];
+    const fileName = pathParts[pathParts.length - 1] ?? "";
     const { error } = await supabase.storage.from("product-images").remove([fileName]);
     if (error) {
       const msg = (error as any).message;

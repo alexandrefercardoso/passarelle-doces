@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as StoreRouteImport } from './routes/_store'
+import { Route as PdvMobileRouteImport } from './routes/pdv-mobile'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as StoreIndexRouteImport } from './routes/_store/index'
 import { Route as StoreCarrinhoRouteImport } from './routes/_store/carrinho'
@@ -49,6 +50,11 @@ const AdminRoute = AdminRouteImport.update({
 } as any)
 const StoreRoute = StoreRouteImport.update({
   id: '/_store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PdvMobileRoute = PdvMobileRouteImport.update({
+  id: '/pdv-mobile',
+  path: '/pdv-mobile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
@@ -211,6 +217,7 @@ const AdminAdminPedidosIdRoute = AdminAdminPedidosIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
+  '/pdv-mobile': typeof PdvMobileRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/carrinho': typeof StoreCarrinhoRoute
   '/checkout': typeof StoreCheckoutRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof StoreIndexRoute
+  '/pdv-mobile': typeof PdvMobileRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/carrinho': typeof StoreCarrinhoRoute
   '/checkout': typeof StoreCheckoutRoute
@@ -279,6 +287,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_admin': typeof AdminRouteWithChildren
   '/_store': typeof StoreRouteWithChildren
+  '/pdv-mobile': typeof PdvMobileRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/_store/carrinho': typeof StoreCarrinhoRoute
   '/_store/checkout': typeof StoreCheckoutRoute
@@ -315,6 +324,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/pdv-mobile'
     | '/redefinir-senha'
     | '/carrinho'
     | '/checkout'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/pdv-mobile'
     | '/redefinir-senha'
     | '/carrinho'
     | '/checkout'
@@ -382,6 +393,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_admin'
     | '/_store'
+    | '/pdv-mobile'
     | '/redefinir-senha'
     | '/_store/carrinho'
     | '/_store/checkout'
@@ -418,6 +430,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   StoreRoute: typeof StoreRouteWithChildren
+  PdvMobileRoute: typeof PdvMobileRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
 }
 
@@ -435,6 +448,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof StoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pdv-mobile': {
+      id: '/pdv-mobile'
+      path: '/pdv-mobile'
+      fullPath: '/pdv-mobile'
+      preLoaderRoute: typeof PdvMobileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/redefinir-senha': {
@@ -745,6 +765,7 @@ const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   StoreRoute: StoreRouteWithChildren,
+  PdvMobileRoute: PdvMobileRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
 }
 export const routeTree = rootRouteImport
