@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_emails: {
+        Row: {
+          email: string
+        }
+        Insert: {
+          email: string
+        }
+        Update: {
+          email?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           button_text: string | null
@@ -83,6 +95,60 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          address: string
+          city: string
+          complement: string
+          created_at: string
+          document: string
+          email: string
+          id: string
+          name: string
+          neighborhood: string
+          notes: string
+          number: string
+          phone: string
+          state: string
+          updated_at: string
+          zip_code: string
+        }
+        Insert: {
+          address?: string
+          city?: string
+          complement?: string
+          created_at?: string
+          document?: string
+          email?: string
+          id: string
+          name: string
+          neighborhood?: string
+          notes?: string
+          number?: string
+          phone?: string
+          state?: string
+          updated_at?: string
+          zip_code?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          complement?: string
+          created_at?: string
+          document?: string
+          email?: string
+          id?: string
+          name?: string
+          neighborhood?: string
+          notes?: string
+          number?: string
+          phone?: string
+          state?: string
+          updated_at?: string
+          zip_code?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -146,6 +212,7 @@ export type Database = {
           payment_method: string
           payment_status: string
           shipping: number
+          source: string
           status: string
           subtotal: number
           total: number
@@ -160,6 +227,7 @@ export type Database = {
           payment_method: string
           payment_status?: string
           shipping?: number
+          source?: string
           status?: string
           subtotal?: number
           total?: number
@@ -174,6 +242,7 @@ export type Database = {
           payment_method?: string
           payment_status?: string
           shipping?: number
+          source?: string
           status?: string
           subtotal?: number
           total?: number
@@ -184,6 +253,7 @@ export type Database = {
       products: {
         Row: {
           badges: Json | null
+          barcode: string | null
           category_id: string
           compare_at_price: number | null
           created_at: string
@@ -193,6 +263,7 @@ export type Database = {
           image_url: string
           is_active: boolean
           is_best_seller: boolean
+          minimum_stock: number
           name: string
           price: number
           sales_count: number
@@ -201,6 +272,7 @@ export type Database = {
         }
         Insert: {
           badges?: Json | null
+          barcode?: string | null
           category_id: string
           compare_at_price?: number | null
           created_at?: string
@@ -210,6 +282,7 @@ export type Database = {
           image_url: string
           is_active?: boolean
           is_best_seller?: boolean
+          minimum_stock?: number
           name: string
           price?: number
           sales_count?: number
@@ -218,6 +291,7 @@ export type Database = {
         }
         Update: {
           badges?: Json | null
+          barcode?: string | null
           category_id?: string
           compare_at_price?: number | null
           created_at?: string
@@ -227,6 +301,7 @@ export type Database = {
           image_url?: string
           is_active?: boolean
           is_best_seller?: boolean
+          minimum_stock?: number
           name?: string
           price?: number
           sales_count?: number
@@ -243,12 +318,36 @@ export type Database = {
           },
         ]
       }
+      site_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
