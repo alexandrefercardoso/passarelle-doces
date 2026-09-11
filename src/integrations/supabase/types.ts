@@ -14,7 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_emails: {
+        Row: {
+          email: string
+        }
+        Insert: {
+          email: string
+        }
+        Update: {
+          email?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      customers: {
+        Row: {
+          address: string
+          city: string
+          complement: string
+          created_at: string
+          document: string
+          email: string
+          id: string
+          name: string
+          neighborhood: string
+          notes: string
+          number: string
+          phone: string
+          state: string
+          updated_at: string
+          zip_code: string
+        }
+        Insert: {
+          address?: string
+          city?: string
+          complement?: string
+          created_at?: string
+          document?: string
+          email?: string
+          id: string
+          name: string
+          neighborhood?: string
+          notes?: string
+          number?: string
+          phone?: string
+          state?: string
+          updated_at?: string
+          zip_code?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          complement?: string
+          created_at?: string
+          document?: string
+          email?: string
+          id?: string
+          name?: string
+          neighborhood?: string
+          notes?: string
+          number?: string
+          phone?: string
+          state?: string
+          updated_at?: string
+          zip_code?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
