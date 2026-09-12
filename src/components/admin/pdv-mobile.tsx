@@ -79,7 +79,7 @@ const PDV_PAYMENTS: PaymentOption[] = [
   { id: "dinheiro", name: "Dinheiro", description: "Pagamento na entrega", type: "imediato" },
 ];
 
-type PdvStep = "products" | "customer" | "payment" | "orders";
+type PdvStep = "products" | "customer" | "payment" | "orders" | "clients";
 
 /* ================================================================== */
 
@@ -104,6 +104,8 @@ export function PdvMobilePage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersSearch, setOrdersSearch] = useState("");
+
+  const [clientsSearch, setClientsSearch] = useState("");
 
   const loadOrders = useCallback(async () => {
     setOrdersLoading(true);
@@ -144,6 +146,18 @@ export function PdvMobilePage() {
       (o) => o.id.toLowerCase().includes(q) || (o.customer?.name ?? "").toLowerCase().includes(q),
     );
   }, [orders, ordersSearch]);
+
+  const filteredClients = useMemo(() => {
+    const q = clientsSearch.trim().toLowerCase();
+    if (!q) return customers;
+    return customers.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.phone.includes(q) ||
+        (c.email ?? "").toLowerCase().includes(q) ||
+        (c.document ?? "").includes(q),
+    );
+  }, [customers, clientsSearch]);
 
   const addItem = (product: Product) => {
     setItems((prev) => {
@@ -939,15 +953,147 @@ export function PdvMobilePage() {
         </div>
       )}
 
+      {/* ============ ETAPA 5 — CLIENTES (gerenciamento) ============ */}
+      {step === "clients" && (
+        <div className="min-h-0 flex-1 overflow-y-auto pb-16">
+          {/* Header da tela */}
+          <div className="border-b border-border bg-card px-2.5 py-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Clientes cadastrados
+                </p>
+                <p className="text-xs font-bold text-foreground">
+                  {customers.length} {customers.length === 1 ? "cliente" : "clientes"}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                className="h-7 gap-1 rounded-full px-2.5 text-[10px] font-bold"
+                onClick={() => {
+                  setEditingCustomer(null);
+                  setShowCustomerDialog(true);
+                }}
+              >
+                <UserPlus className="h-3 w-3" />
+                Novo cliente
+              </Button>
+            </div>
+            {/* Busca */}
+            <div className="relative mt-2">
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por nome, telefone, CPF/CNPJ..."
+                value={clientsSearch}
+                onChange={(e) => setClientsSearch(e.target.value)}
+                className="h-9 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-xs outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+              />
+            </div>
+          </div>
+
+          {/* Lista de clientes */}
+          <div className="p-2">
+            {filteredClients.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-14 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                  <Users className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="mt-2.5 text-sm font-medium text-foreground">
+                  {clientsSearch ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {clientsSearch
+                    ? "Tente buscar por outro nome ou telefone."
+                    : "Clique em \"Novo cliente\" para cadastrar."}
+                </p>
+              </div>
+            ) : (
+              <ul className="space-y-1.5">
+                {filteredClients.map((c) => {
+                  const isSelected = selectedCustomer?.id === c.id;
+                  return (
+                    <li
+                      key={c.id}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg border bg-card p-2.5 transition-colors",
+                        isSelected
+                          ? "border-gold/60 bg-gold-soft/20"
+                          : "border-border hover:border-gold/30",
+                      )}
+                    >
+                      {/* Avatar */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedCustomer(isSelected ? null : c)
+                        }
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-chocolate/10 font-display text-[13px] font-bold text-chocolate"
+                        title={isSelected ? "Desselecionar" : "Selecionar para o pedido"}
+                      >
+                        {c.name.charAt(0).toUpperCase()}
+                      </button>
+
+                      {/* Info */}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCustomer(isSelected ? null : c)}
+                        className="min-w-0 flex-1 text-left"
+                      >
+                        <p className="truncate text-[11px] font-semibold text-foreground">
+                          {c.name}
+                          {isSelected && (
+                            <span className="ml-1.5 inline-flex items-center rounded-full bg-gold px-1.5 py-0.5 text-[8px] font-bold text-chocolate-dark">
+                              selecionado
+                            </span>
+                          )}
+                        </p>
+                        <p className="truncate text-[10px] text-muted-foreground">
+                          {c.phone}
+                          {c.document ? ` · ${c.document}` : ""}
+                        </p>
+                      </button>
+
+                      {/* Ações */}
+                      <div className="flex shrink-0 items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingCustomer(c);
+                            setShowCustomerDialog(true);
+                          }}
+                          className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          title="Editar"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteCustomer(c.id)}
+                          className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                          title="Excluir"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Bottom Nav fixa */}
       <nav className="shrink-0 border-t border-border bg-card px-1 pb-[calc(env(safe-area-inset-bottom)+0.4rem)] pt-1.5">
         <div className="grid grid-cols-4 gap-1">
           {(
             [
               { id: "products", label: "Produtos", icon: PackageSearch },
-              { id: "cart", label: "Carrinho", icon: ShoppingCart },
-              { id: "orders", label: "Pedidos", icon: Receipt },
-              { id: "customer", label: "Cliente", icon: User },
+              { id: "cart",     label: "Carrinho", icon: ShoppingCart },
+              { id: "orders",   label: "Pedidos",  icon: Receipt },
+              { id: "clients",  label: "Clientes", icon: Users },
             ] as { id: PdvStep | "cart"; label: string; icon: typeof PackageSearch }[]
           ).map((item) => {
             const isCart = item.id === "cart";
@@ -955,10 +1101,10 @@ export function PdvMobilePage() {
               item.id === "products"
                 ? step === "products"
                 : item.id === "cart"
-                  ? step === "customer" && items.length > 0
+                  ? step === "customer"
                   : item.id === "orders"
                     ? step === "orders"
-                    : item.id === "customer" && !!selectedCustomer;
+                    : step === "clients";
             const handleClick = () => {
               if (isCart) {
                 if (items.length === 0) {
