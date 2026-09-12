@@ -27,6 +27,7 @@ import { ADMINS } from "@/lib/constants";
 import { Toaster } from "@/components/ui/sonner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AdminLoginForm } from "@/components/admin/login-form";
+import { InstallAppButton } from "@/components/install-app-button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_admin")({
@@ -179,6 +180,11 @@ function SidebarNav({
           <Home className="h-4 w-4" />
           Ver a loja
         </Link>
+
+        <InstallAppButton
+          label="Instalar app"
+          className="w-full items-center rounded-xl bg-cream/[0.06] px-4 py-2.5 text-sm text-cream/80 transition-colors hover:bg-gold/10 hover:text-gold"
+        />
 
         {isAdmin && (
           <button

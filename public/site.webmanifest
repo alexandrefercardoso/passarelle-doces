@@ -44,7 +44,7 @@
     {
       "name": "Admin",
       "short_name": "Admin",
-      "url": "/_admin/admin",
+      "url": "/admin",
       "icons": [
         {
           "src": "/icons/icon-admin-96.png",
