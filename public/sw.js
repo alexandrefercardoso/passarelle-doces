@@ -7,7 +7,7 @@
  *  - Google Fonts: CSS stale-while-revalidate, arquivos de fonte cache-first.
  *  - Sem rede: fallback para /offline.html nas navegações.
  */
-var VERSION = "passarelli-v1.0.1";
+var VERSION = "passarelli-v1.1.0";
 var CACHES = {
   core: VERSION + "-core",
   assets: VERSION + "-assets",
@@ -21,13 +21,17 @@ var SUPABASE_HOSTS = new Set(["sapxjmmbodqyryfmhied.supabase.co"]);
 var PRECACHE_URLS = [
   "/offline.html",
   "/site.webmanifest",
+  "/pdv.webmanifest",
+  "/admin.webmanifest",
   "/favicon.ico",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/icon-512-maskable.png",
   "/icons/apple-touch-icon.png",
-  "/icons/icon-pdv-96.png",
-  "/icons/icon-admin-96.png",
+  "/icons/icon-pdv-192.png",
+  "/icons/icon-pdv-512.png",
+  "/icons/icon-admin-192.png",
+  "/icons/icon-admin-512.png",
 ];
 
 self.addEventListener("install", function (event) {

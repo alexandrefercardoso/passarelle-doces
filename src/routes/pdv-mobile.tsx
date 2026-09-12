@@ -11,6 +11,9 @@ import { InstallAppButton } from "@/components/install-app-button";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/pdv-mobile")({
+  head: () => ({
+    links: [{ rel: "manifest", href: "/pdv.webmanifest" }],
+  }),
   component: PdvMobileStandalone,
 });
 

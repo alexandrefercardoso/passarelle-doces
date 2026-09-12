@@ -2,6 +2,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { registerServiceWorker } from "@/lib/pwa";
 
+/*
+ * Dependência de manifest por rota:
+ *  - / (loja)            -> <link rel="manifest" href="/site.webmanifest">   (head em _store.tsx)
+ *  - /pdv-mobile (PDV)   -> <link rel="manifest" href="/pdv.webmanifest">    (head em pdv-mobile.tsx)
+ *  - /admin (admin)      -> <link rel="manifest" href="/admin.webmanifest">  (head em _admin.tsx)
+ * O navegador usa o manifest ativo da rota atual para o beforeinstallprompt.
+ * Este hook é agnóstico: ele apenas reage ao evento que o navegador dispara
+ * com base no manifest vigente. Se uma rota não declarar manifest, o Chrome
+ * simplesmente não oferece instalação ali — não corrigir acessando manifest por
+ * aqui; declarar no head() da rota.
+ */
+
 export interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;

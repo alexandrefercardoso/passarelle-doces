@@ -31,6 +31,9 @@ import { InstallAppButton } from "@/components/install-app-button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_admin")({
+  head: () => ({
+    links: [{ rel: "manifest", href: "/admin.webmanifest" }],
+  }),
   component: AdminLayout,
 });
 

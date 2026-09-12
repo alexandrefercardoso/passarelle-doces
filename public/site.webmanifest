@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Passarelli Doces",
   "short_name": "Passarelli",
   "description": "PASSARELLI DOCES: brigadeiros, chocolates, bolos e doces gourmet artesanais. Doces artesanais e chocolates especiais para adoçar o seu dia.",
@@ -27,30 +28,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "PDV Mobile",
-      "short_name": "PDV",
-      "url": "/pdv-mobile",
-      "icons": [
-        {
-          "src": "/icons/icon-pdv-96.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Admin",
-      "short_name": "Admin",
-      "url": "/admin",
-      "icons": [
-        {
-          "src": "/icons/icon-admin-96.png",
-          "sizes": "96x96"
-        }
-      ]
     }
   ]
 }
