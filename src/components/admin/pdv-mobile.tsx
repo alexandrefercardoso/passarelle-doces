@@ -1033,7 +1033,7 @@ function CustomerSearch({
   const [showResults, setShowResults] = useState(false);
 
   const results = useMemo(() => {
-    if (!query.trim()) return [];
+    if (!query.trim()) return customers;
     const q = query.toLowerCase();
     return customers.filter(
       (c) =>
@@ -1058,7 +1058,7 @@ function CustomerSearch({
         onFocus={() => setShowResults(true)}
         className="h-9 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-xs outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
       />
-      {showResults && query.trim() && (
+      {showResults && (
         <div className="absolute inset-x-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-card shadow-xl">
           {results.length > 0 ? (
             results.map((c) => (
