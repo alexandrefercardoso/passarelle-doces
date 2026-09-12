@@ -358,7 +358,7 @@ export function PdvMobilePage() {
   }
 
   return (
-    <div className="-mx-4 -mb-4 -mt-4 flex h-[calc(100dvh-4rem)] flex-col bg-background sm:-mx-6 sm:-mb-6 sm:-mt-6">
+    <div className="-mx-4 -mb-4 -mt-4 flex h-[100svh] flex-col bg-background sm:-mx-6 sm:-mb-6 sm:-mt-6" style={{ height: "100svh" }}>
       {/* Header */}
       <div className="shrink-0 border-b border-border bg-card px-2.5 py-1.5">
         <div className="flex items-center justify-between">
@@ -1085,9 +1085,15 @@ export function PdvMobilePage() {
         </div>
       )}
 
-      {/* Bottom Nav fixa */}
-      <nav className="shrink-0 border-t border-border bg-card px-1 pb-[calc(env(safe-area-inset-bottom)+0.4rem)] pt-1.5">
-        <div className="grid grid-cols-4 gap-1">
+      {/* Bottom Nav — flutuante, com espaço generoso para Samsung F23 */}
+      <nav
+        className="shrink-0 bg-transparent px-3"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.1rem)" }}
+      >
+        {/* Pill container */}
+        <div
+          className="grid grid-cols-4 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_-2px_20px_rgba(0,0,0,0.12),0_4px_24px_rgba(0,0,0,0.08)]"
+        >
           {(
             [
               { id: "products", label: "Produtos", icon: PackageSearch },
@@ -1124,21 +1130,27 @@ export function PdvMobilePage() {
                 type="button"
                 onClick={handleClick}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 rounded-xl py-1.5 transition-colors",
+                  "relative flex flex-col items-center gap-0.5 px-1 py-3 transition-all duration-200 active:scale-95",
                   active
                     ? "bg-chocolate text-cream"
-                    : "text-muted-foreground hover:text-foreground",
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                 )}
               >
+                {/* linha indicadora no topo do item ativo */}
+                {active && (
+                  <span className="absolute left-1/2 top-0 h-[3px] w-8 -translate-x-1/2 rounded-b-full bg-gold" />
+                )}
                 <span className="relative">
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className={cn("h-[18px] w-[18px] transition-transform", active && "scale-110")} />
                   {isCart && items.length > 0 && (
-                    <span className="absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-gold px-0.5 text-[8px] font-bold text-chocolate-dark shadow">
+                    <span className="absolute -right-2.5 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-0.5 text-[8px] font-extrabold text-chocolate-dark shadow-md ring-2 ring-card">
                       {items.length}
                     </span>
                   )}
                 </span>
-                <span className="text-[8px] font-bold uppercase tracking-wider">{item.label}</span>
+                <span className={cn("text-[8px] font-bold uppercase tracking-wider transition-opacity", active ? "opacity-100" : "opacity-60")}>
+                  {item.label}
+                </span>
               </button>
             );
           })}
