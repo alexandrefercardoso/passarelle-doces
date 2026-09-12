@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { CartProvider } from "../hooks/use-cart";
 import { WishlistProvider } from "../hooks/use-wishlist";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { InstallPrompt } from "../components/install-prompt";
 
 function NotFoundComponent() {
   return (
@@ -89,6 +90,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Passarelli Doces" },
       { name: "theme-color", content: "#2a1510" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Passarelli" },
       { property: "og:title", content: "Passarelli Doces — Doçura que encanta" },
       {
         property: "og:description",
@@ -120,6 +124,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "manifest", href: "/site.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
+      { rel: "icon", href: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { rel: "icon", href: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     scripts: [
       {
@@ -175,6 +183,7 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </WishlistProvider>
+        <InstallPrompt />
       </CartProvider>
     </QueryClientProvider>
   );

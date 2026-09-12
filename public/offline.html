@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Você está offline — Passarelli Doces</title>
+    <meta name="theme-color" content="#2a1510" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at 50% 25%, #40241d 0%, #2a1510 60%, #1f0f0b 100%);
+        color: #faf5ed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        text-align: center;
+        -webkit-font-smoothing: antialiased;
+      }
+      .card {
+        max-width: 360px;
+        width: 100%;
+      }
+      .mark {
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 22px;
+        border-radius: 50%;
+        background: rgba(197, 158, 77, 0.12);
+        border: 2px solid rgba(197, 158, 77, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .mark span {
+        font-family: "Playfair Display", Georgia, serif;
+        font-style: italic;
+        font-weight: 900;
+        font-size: 44px;
+        line-height: 1;
+        background: linear-gradient(180deg, #e8c67a 0%, #c59e4d 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        transform: translateY(2px);
+      }
+      h1 {
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        margin-bottom: 10px;
+      }
+      p {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #f2e3bf;
+        margin-bottom: 26px;
+      }
+      button {
+        cursor: pointer;
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #e8c67a 0%, #c59e4d 100%);
+        color: #2a1510;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 12px 28px;
+        transition: filter 0.2s ease;
+      }
+      button:hover {
+        filter: brightness(1.06);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="mark"><span>P</span></div>
+      <h1>Você está offline</h1>
+      <p>
+        Parece que a sua conexão caiu. Confira a internet e tente novamente para continuar pedindo
+        os doces da Passarelli.
+      </p>
+      <button type="button" onclick="window.location.reload()">Tentar novamente</button>
+    </div>
+  </body>
+</html>
