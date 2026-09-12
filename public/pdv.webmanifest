@@ -1,7 +1,7 @@
 {
   "id": "/pdv-mobile",
   "name": "PDV Passarelli",
-  "short_name": "PDV",
+  "short_name": "PDV Passarelli",
   "description": "PDV Passarelli — frente de caixa e atendimento do PDV Mobile da Passarelli Doces.",
   "start_url": "/pdv-mobile",
   "scope": "/pdv-mobile",

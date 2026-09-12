@@ -1,7 +1,7 @@
 {
   "id": "/admin",
   "name": "Admin Passarelli",
-  "short_name": "Admin",
+  "short_name": "Admin Passarelli",
   "description": "Painel administrativo da Passarelli Doces — pedidos, catálogo, banners e PDV.",
   "start_url": "/admin",
   "scope": "/admin",

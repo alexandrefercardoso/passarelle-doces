@@ -92,7 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#2a1510" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Passarelli" },
+      { name: "apple-mobile-web-app-title", content: "Passarelli Doces" },
       { property: "og:title", content: "Passarelli Doces — Doçura que encanta" },
       {
         property: "og:description",
