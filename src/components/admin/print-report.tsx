@@ -473,7 +473,7 @@ export function printProductCatalog(products: Product[], categories: Category[])
           </div>
         </td>
         <td>${escHtml(catName(p.categoryId))}</td>
-        <td class="right strong">${formatCurrency(p.price)}</td>
+        <td class="right strong">${formatCurrency(p.price)}${p.unitLabel ? `<span class="muted">/${escHtml(p.unitLabel)}</span>` : ""}</td>
         <td class="right muted">${p.compareAtPrice ? formatCurrency(p.compareAtPrice) : "—"}</td>
         <td class="center">
           <span class="strong">${p.stock}</span>

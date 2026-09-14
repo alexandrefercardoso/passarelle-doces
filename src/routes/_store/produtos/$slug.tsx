@@ -181,7 +181,12 @@ function ProductDetailPage() {
           </h1>
 
           <div className="mt-3">
-            <Price price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
+            <Price
+              price={product.price}
+              compareAtPrice={product.compareAtPrice}
+              unitLabel={product.unitLabel}
+              size="lg"
+            />
             {isSale && product.compareAtPrice && (
               <p className="mt-1 text-xs text-muted-foreground">
                 Você economiza{" "}

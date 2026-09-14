@@ -21,6 +21,7 @@ export type Product = {
   stock: number;
   minimumStock: number;
   barcode: string | null;
+  unitLabel: string | null;
   isActive: boolean;
   isBestSeller: boolean;
   salesCount: number;

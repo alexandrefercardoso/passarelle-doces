@@ -71,6 +71,7 @@ function AdminProductsPage() {
     stock: p.stock,
     minimumStock: p.minimumStock,
     barcode: p.barcode,
+    unitLabel: p.unitLabel,
     isActive: p.isActive,
     isBestSeller: p.isBestSeller,
     salesCount: 0,
@@ -318,6 +319,7 @@ function ProductForm({
     stock: initial?.stock ?? 0,
     minimumStock: initial?.minimumStock ?? 0,
     barcode: initial?.barcode ?? "",
+    unitLabel: initial?.unitLabel ?? "",
     isActive: initial?.isActive ?? true,
     isBestSeller: initial?.isBestSeller ?? false,
     salesCount: initial?.salesCount ?? 0,
@@ -387,7 +389,7 @@ function ProductForm({
               </Select>
             </Field>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Preço (R$) *">
               <Input
                 type="number"
@@ -408,6 +410,36 @@ function ProductForm({
                 }
                 placeholder="Deixar vazio se não houver"
               />
+            </Field>
+            <Field label="Unidade de medida">
+              <Select
+                value={form.unitLabel ?? "none"}
+                onValueChange={(v) => set("unitLabel", v === "none" ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a unidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  <SelectItem value="un">UN — Unidade</SelectItem>
+                  <SelectItem value="pct">PCT — Pacote</SelectItem>
+                  <SelectItem value="cx">CX — Caixa</SelectItem>
+                  <SelectItem value="pote">Pote</SelectItem>
+                  <SelectItem value="cent">Cento</SelectItem>
+                  <SelectItem value="duzia">Dúzia</SelectItem>
+                  <SelectItem value="kg">KG — Quilograma</SelectItem>
+                  <SelectItem value="g">G — Grama</SelectItem>
+                  <SelectItem value="litro">L — Litro</SelectItem>
+                  <SelectItem value="ml">ML — Mililitro</SelectItem>
+                  <SelectItem value="fatia">Fatia</SelectItem>
+                  <SelectItem value="pedaco">Pedação</SelectItem>
+                  <SelectItem value="bandeja">Bandeja</SelectItem>
+                  <SelectItem value="torta">Torta</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                Aparece junto ao preço (ex.: R$ 3,00/un).
+              </p>
             </Field>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">

@@ -82,6 +82,11 @@ export function SearchBox({ className }: { className?: string }) {
                     </div>
                     <div className="text-sm font-semibold text-chocolate-dark">
                       {formatCurrency(p.price)}
+                      {p.unitLabel && (
+                        <span className="ml-0.5 text-xs font-normal text-muted-foreground">
+                          /{p.unitLabel}
+                        </span>
+                      )}
                       {p.compareAtPrice && p.compareAtPrice > p.price && (
                         <span className="ml-1.5 text-xs font-normal text-muted-foreground line-through">
                           {formatCurrency(p.compareAtPrice)}

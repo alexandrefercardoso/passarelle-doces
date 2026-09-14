@@ -96,7 +96,12 @@ export function ProductCard({ product, className, showQuickView = true }: Produc
         </Link>
 
         <div className="mt-2">
-          <Price price={product.price} compareAtPrice={product.compareAtPrice} size="md" />
+          <Price
+            price={product.price}
+            compareAtPrice={product.compareAtPrice}
+            unitLabel={product.unitLabel}
+            size="md"
+          />
         </div>
 
         <div className="mt-auto flex items-center gap-2 pt-3">

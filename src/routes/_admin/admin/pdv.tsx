@@ -446,6 +446,7 @@ function PdvPage() {
                           <div className="flex items-center gap-1">
                             <span className="text-xs font-bold text-chocolate-dark sm:text-sm">
                               {formatCurrency(product.price)}
+                              <UnitSuffix label={product.unitLabel} />
                             </span>
                             <span className="text-[10px] text-muted-foreground line-through">
                               {formatCurrency(product.compareAtPrice)}
@@ -454,6 +455,7 @@ function PdvPage() {
                         ) : (
                           <span className="text-xs font-bold text-chocolate-dark sm:text-sm">
                             {formatCurrency(product.price)}
+                            <UnitSuffix label={product.unitLabel} />
                           </span>
                         )}
                       </div>
@@ -485,6 +487,7 @@ function PdvPage() {
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm font-bold text-chocolate-dark">
                             {formatCurrency(product.price)}
+                            <UnitSuffix label={product.unitLabel} />
                           </span>
                           <span className="text-[11px] text-muted-foreground line-through">
                             {formatCurrency(product.compareAtPrice)}
@@ -493,6 +496,7 @@ function PdvPage() {
                       ) : (
                         <span className="text-sm font-bold text-chocolate-dark">
                           {formatCurrency(product.price)}
+                          <UnitSuffix label={product.unitLabel} />
                         </span>
                       )}
                     </div>
@@ -1272,4 +1276,9 @@ function PaymentDialog({
       </div>
     </div>
   );
+}
+
+function UnitSuffix({ label }: { label: string | null }) {
+  if (!label) return null;
+  return <span className="ml-0.5 font-normal text-muted-foreground">/{label}</span>;
 }

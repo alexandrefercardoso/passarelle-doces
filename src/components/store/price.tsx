@@ -4,20 +4,22 @@ import { formatCurrency, formatDiscountPercent } from "@/lib/format";
 type PriceProps = {
   price: number;
   compareAtPrice?: number | null;
+  unitLabel?: string | null;
   className?: string;
   size?: "sm" | "md" | "lg";
   showDiscount?: boolean;
 };
 
 const sizeMap = {
-  sm: { price: "text-base", old: "text-xs", percent: "text-[10px]" },
-  md: { price: "text-lg", old: "text-sm", percent: "text-xs" },
-  lg: { price: "text-2xl", old: "text-base", percent: "text-sm" },
+  sm: { price: "text-base", old: "text-xs", percent: "text-[10px]", unit: "text-[10px]" },
+  md: { price: "text-lg", old: "text-sm", percent: "text-xs", unit: "text-xs" },
+  lg: { price: "text-2xl", old: "text-base", percent: "text-sm", unit: "text-sm" },
 } as const;
 
 export function Price({
   price,
   compareAtPrice,
+  unitLabel,
   className,
   size = "md",
   showDiscount = true,
@@ -31,6 +33,11 @@ export function Price({
       <div className="flex flex-wrap items-baseline gap-2">
         <span className={cn("font-display font-bold tracking-tight", s.price)}>
           {formatCurrency(price)}
+          {unitLabel ? (
+            <span className={cn("ml-0.5 font-normal text-muted-foreground", s.unit)}>
+              /{unitLabel}
+            </span>
+          ) : null}
         </span>
         {isSale && (
           <span className={cn("font-normal text-muted-foreground line-through", s.old)}>

@@ -358,7 +358,10 @@ export function PdvMobilePage() {
   }
 
   return (
-    <div className="-mx-4 -mb-4 -mt-4 flex h-[100svh] flex-col bg-background sm:-mx-6 sm:-mb-6 sm:-mt-6" style={{ height: "100svh" }}>
+    <div
+      className="-mx-4 -mb-4 -mt-4 flex h-[100svh] flex-col bg-background sm:-mx-6 sm:-mb-6 sm:-mt-6"
+      style={{ height: "100svh" }}
+    >
       {/* Header */}
       <div className="shrink-0 border-b border-border bg-card px-2.5 py-1.5">
         <div className="flex items-center justify-between">
@@ -372,9 +375,9 @@ export function PdvMobilePage() {
           </div>
           <div className="text-right">
             <p className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Total
+              Total da venda
             </p>
-            <p className="font-display text-sm font-extrabold leading-tight text-chocolate-dark">
+            <p className="inline-flex items-center rounded-lg bg-gradient-to-r from-chocolate-dark to-chocolate px-2.5 py-0.5 font-display text-base font-extrabold leading-relaxed text-gold shadow-md ring-2 ring-gold/60">
               {formatCurrency(total)}
             </p>
           </div>
@@ -494,12 +497,11 @@ export function PdvMobilePage() {
                       className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-gold hover:shadow-md active:scale-95"
                     >
                       <div className="relative">
-                        <div className="h-10 w-full overflow-hidden bg-cream">
+                        <div className="aspect-square w-full overflow-hidden bg-cream">
                           <ProductImage
                             src={product.imageUrl}
                             alt={product.name}
                             emoji="🧁"
-                            className="transition-transform duration-300 group-hover:scale-110"
                             sizes="80px"
                           />
                         </div>
@@ -513,6 +515,11 @@ export function PdvMobilePage() {
                         </p>
                         <p className="mt-auto pt-0.5 text-[9px] font-bold text-chocolate-dark">
                           {formatCurrency(product.price)}
+                          {product.unitLabel ? (
+                            <span className="ml-0.5 font-normal text-muted-foreground">
+                              /{product.unitLabel}
+                            </span>
+                          ) : null}
                         </p>
                       </div>
                     </button>
@@ -530,9 +537,11 @@ export function PdvMobilePage() {
                 onClick={goToCustomer}
               >
                 <ShoppingCart className="mr-1 h-3.5 w-3.5" />
-                Ver carrinho · {items.length} {items.length === 1 ? "item" : "itens"} ·{" "}
-                {formatCurrency(total)}
-                <ArrowRight className="ml-auto h-3.5 w-3.5" />
+                Ver carrinho · {items.length} {items.length === 1 ? "item" : "itens"}
+                <span className="ml-auto rounded-full bg-cream px-2.5 py-0.5 font-display text-[13px] font-extrabold text-chocolate-dark shadow-sm">
+                  {formatCurrency(total)}
+                </span>
+                <ArrowRight className="ml-1 h-3.5 w-3.5" />
               </Button>
             </div>
           )}
@@ -820,9 +829,13 @@ export function PdvMobilePage() {
                     <span>Aguardando pagamento</span>
                   </div>
                 )}
-                <div className="flex justify-between border-t border-border pt-1 text-[13px] font-bold text-foreground">
-                  <span>Total</span>
-                  <span className="font-display text-chocolate-dark">{formatCurrency(total)}</span>
+                <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-chocolate-dark to-chocolate px-3 py-2.5 shadow-md ring-2 ring-gold/50">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-cream/80">
+                    Total da venda
+                  </span>
+                  <span className="font-display text-xl font-extrabold leading-none text-gold">
+                    {formatCurrency(total)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -848,7 +861,10 @@ export function PdvMobilePage() {
                 ) : (
                   <>
                     <Check className="mr-1 h-3.5 w-3.5" />
-                    Fechar Pedido — {formatCurrency(total)}
+                    <span>Fechar Pedido</span>
+                    <span className="ml-auto rounded-full bg-cream px-2.5 py-0.5 font-display text-[13px] font-extrabold text-chocolate-dark">
+                      {formatCurrency(total)}
+                    </span>
                   </>
                 )}
               </Button>
@@ -1005,7 +1021,7 @@ export function PdvMobilePage() {
                 <p className="text-xs text-muted-foreground">
                   {clientsSearch
                     ? "Tente buscar por outro nome ou telefone."
-                    : "Clique em \"Novo cliente\" para cadastrar."}
+                    : 'Clique em "Novo cliente" para cadastrar.'}
                 </p>
               </div>
             ) : (
@@ -1025,9 +1041,7 @@ export function PdvMobilePage() {
                       {/* Avatar */}
                       <button
                         type="button"
-                        onClick={() =>
-                          setSelectedCustomer(isSelected ? null : c)
-                        }
+                        onClick={() => setSelectedCustomer(isSelected ? null : c)}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-chocolate/10 font-display text-[13px] font-bold text-chocolate"
                         title={isSelected ? "Desselecionar" : "Selecionar para o pedido"}
                       >
@@ -1091,15 +1105,13 @@ export function PdvMobilePage() {
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.1rem)" }}
       >
         {/* Pill container */}
-        <div
-          className="grid grid-cols-4 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_-2px_20px_rgba(0,0,0,0.12),0_4px_24px_rgba(0,0,0,0.08)]"
-        >
+        <div className="grid grid-cols-4 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_-2px_20px_rgba(0,0,0,0.12),0_4px_24px_rgba(0,0,0,0.08)]">
           {(
             [
               { id: "products", label: "Produtos", icon: PackageSearch },
-              { id: "cart",     label: "Carrinho", icon: ShoppingCart },
-              { id: "orders",   label: "Pedidos",  icon: Receipt },
-              { id: "clients",  label: "Clientes", icon: Users },
+              { id: "cart", label: "Carrinho", icon: ShoppingCart },
+              { id: "orders", label: "Pedidos", icon: Receipt },
+              { id: "clients", label: "Clientes", icon: Users },
             ] as { id: PdvStep | "cart"; label: string; icon: typeof PackageSearch }[]
           ).map((item) => {
             const isCart = item.id === "cart";
@@ -1141,14 +1153,21 @@ export function PdvMobilePage() {
                   <span className="absolute left-1/2 top-0 h-[3px] w-8 -translate-x-1/2 rounded-b-full bg-gold" />
                 )}
                 <span className="relative">
-                  <item.icon className={cn("h-[18px] w-[18px] transition-transform", active && "scale-110")} />
+                  <item.icon
+                    className={cn("h-[18px] w-[18px] transition-transform", active && "scale-110")}
+                  />
                   {isCart && items.length > 0 && (
                     <span className="absolute -right-2.5 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-0.5 text-[8px] font-extrabold text-chocolate-dark shadow-md ring-2 ring-card">
                       {items.length}
                     </span>
                   )}
                 </span>
-                <span className={cn("text-[8px] font-bold uppercase tracking-wider transition-opacity", active ? "opacity-100" : "opacity-60")}>
+                <span
+                  className={cn(
+                    "text-[8px] font-bold uppercase tracking-wider transition-opacity",
+                    active ? "opacity-100" : "opacity-60",
+                  )}
+                >
                   {item.label}
                 </span>
               </button>
