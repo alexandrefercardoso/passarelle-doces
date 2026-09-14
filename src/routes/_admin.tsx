@@ -5,6 +5,7 @@ import { Link, Outlet, useLocation, createFileRoute } from "@tanstack/react-rout
 import {
   BadgePercent,
   BarChart3,
+  Building2,
   Candy,
   DollarSign,
   Home,
@@ -20,6 +21,7 @@ import {
   Sparkles,
   Tags,
   Users,
+  Wallet,
 } from "lucide-react";
 import { AdminDataProvider } from "@/hooks/use-admin-data";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,8 +79,10 @@ const navGroups: NavGroup[] = [
       { to: "/admin/pdv-mobile", label: "PDV Mobile", icon: Smartphone },
       { to: "/admin/pedidos", label: "Pedidos", icon: ReceiptText },
       { to: "/admin/clientes", label: "Clientes", icon: Users },
-      { to: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
+      { to: "/admin/contas-a-pagar", label: "Contas a Pagar", icon: Wallet },
+      { to: "/admin/financeiro", label: "Contas a Receber", icon: DollarSign },
       { to: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
+      { to: "/admin/fornecedores", label: "Fornecedores", icon: Building2 },
     ],
   },
   {

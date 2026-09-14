@@ -30,7 +30,9 @@ import { Route as AdminAdminBannersRouteImport } from './routes/_admin/admin/ban
 import { Route as AdminAdminCategoriasRouteImport } from './routes/_admin/admin/categorias'
 import { Route as AdminAdminClientesRouteImport } from './routes/_admin/admin/clientes'
 import { Route as AdminAdminConfiguracoesRouteImport } from './routes/_admin/admin/configuracoes'
+import { Route as AdminAdminContasAPagarRouteImport } from './routes/_admin/admin/contas-a-pagar'
 import { Route as AdminAdminFinanceiroRouteImport } from './routes/_admin/admin/financeiro'
+import { Route as AdminAdminFornecedoresRouteImport } from './routes/_admin/admin/fornecedores'
 import { Route as AdminAdminInstagramPostsRouteImport } from './routes/_admin/admin/instagram-posts'
 import { Route as AdminAdminPdvRouteImport } from './routes/_admin/admin/pdv'
 import { Route as AdminAdminPdvMobileRouteImport } from './routes/_admin/admin/pdv-mobile'
@@ -148,9 +150,19 @@ const AdminAdminConfiguracoesRoute = AdminAdminConfiguracoesRouteImport.update({
   path: '/admin/configuracoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminContasAPagarRoute = AdminAdminContasAPagarRouteImport.update({
+  id: '/admin/contas-a-pagar',
+  path: '/admin/contas-a-pagar',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdminFinanceiroRoute = AdminAdminFinanceiroRouteImport.update({
   id: '/admin/financeiro',
   path: '/admin/financeiro',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminFornecedoresRoute = AdminAdminFornecedoresRouteImport.update({
+  id: '/admin/fornecedores',
+  path: '/admin/fornecedores',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAdminInstagramPostsRoute =
@@ -234,7 +246,9 @@ export interface FileRoutesByFullPath {
   '/admin/categorias': typeof AdminAdminCategoriasRoute
   '/admin/clientes': typeof AdminAdminClientesRoute
   '/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
+  '/admin/contas-a-pagar': typeof AdminAdminContasAPagarRoute
   '/admin/financeiro': typeof AdminAdminFinanceiroRoute
+  '/admin/fornecedores': typeof AdminAdminFornecedoresRoute
   '/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
   '/admin/pdv': typeof AdminAdminPdvRoute
   '/admin/pdv-mobile': typeof AdminAdminPdvMobileRoute
@@ -268,7 +282,9 @@ export interface FileRoutesByTo {
   '/admin/categorias': typeof AdminAdminCategoriasRoute
   '/admin/clientes': typeof AdminAdminClientesRoute
   '/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
+  '/admin/contas-a-pagar': typeof AdminAdminContasAPagarRoute
   '/admin/financeiro': typeof AdminAdminFinanceiroRoute
+  '/admin/fornecedores': typeof AdminAdminFornecedoresRoute
   '/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
   '/admin/pdv': typeof AdminAdminPdvRoute
   '/admin/pdv-mobile': typeof AdminAdminPdvMobileRoute
@@ -305,7 +321,9 @@ export interface FileRoutesById {
   '/_admin/admin/categorias': typeof AdminAdminCategoriasRoute
   '/_admin/admin/clientes': typeof AdminAdminClientesRoute
   '/_admin/admin/configuracoes': typeof AdminAdminConfiguracoesRoute
+  '/_admin/admin/contas-a-pagar': typeof AdminAdminContasAPagarRoute
   '/_admin/admin/financeiro': typeof AdminAdminFinanceiroRoute
+  '/_admin/admin/fornecedores': typeof AdminAdminFornecedoresRoute
   '/_admin/admin/instagram-posts': typeof AdminAdminInstagramPostsRoute
   '/_admin/admin/pdv': typeof AdminAdminPdvRoute
   '/_admin/admin/pdv-mobile': typeof AdminAdminPdvMobileRoute
@@ -341,7 +359,9 @@ export interface FileRouteTypes {
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
+    | '/admin/contas-a-pagar'
     | '/admin/financeiro'
+    | '/admin/fornecedores'
     | '/admin/instagram-posts'
     | '/admin/pdv'
     | '/admin/pdv-mobile'
@@ -375,7 +395,9 @@ export interface FileRouteTypes {
     | '/admin/categorias'
     | '/admin/clientes'
     | '/admin/configuracoes'
+    | '/admin/contas-a-pagar'
     | '/admin/financeiro'
+    | '/admin/fornecedores'
     | '/admin/instagram-posts'
     | '/admin/pdv'
     | '/admin/pdv-mobile'
@@ -411,7 +433,9 @@ export interface FileRouteTypes {
     | '/_admin/admin/categorias'
     | '/_admin/admin/clientes'
     | '/_admin/admin/configuracoes'
+    | '/_admin/admin/contas-a-pagar'
     | '/_admin/admin/financeiro'
+    | '/_admin/admin/fornecedores'
     | '/_admin/admin/instagram-posts'
     | '/_admin/admin/pdv'
     | '/_admin/admin/pdv-mobile'
@@ -583,11 +607,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminConfiguracoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/contas-a-pagar': {
+      id: '/_admin/admin/contas-a-pagar'
+      path: '/admin/contas-a-pagar'
+      fullPath: '/admin/contas-a-pagar'
+      preLoaderRoute: typeof AdminAdminContasAPagarRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/admin/financeiro': {
       id: '/_admin/admin/financeiro'
       path: '/admin/financeiro'
       fullPath: '/admin/financeiro'
       preLoaderRoute: typeof AdminAdminFinanceiroRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/fornecedores': {
+      id: '/_admin/admin/fornecedores'
+      path: '/admin/fornecedores'
+      fullPath: '/admin/fornecedores'
+      preLoaderRoute: typeof AdminAdminFornecedoresRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/admin/instagram-posts': {
@@ -693,7 +731,9 @@ interface AdminRouteChildren {
   AdminAdminCategoriasRoute: typeof AdminAdminCategoriasRoute
   AdminAdminClientesRoute: typeof AdminAdminClientesRoute
   AdminAdminConfiguracoesRoute: typeof AdminAdminConfiguracoesRoute
+  AdminAdminContasAPagarRoute: typeof AdminAdminContasAPagarRoute
   AdminAdminFinanceiroRoute: typeof AdminAdminFinanceiroRoute
+  AdminAdminFornecedoresRoute: typeof AdminAdminFornecedoresRoute
   AdminAdminInstagramPostsRoute: typeof AdminAdminInstagramPostsRoute
   AdminAdminPdvRoute: typeof AdminAdminPdvRoute
   AdminAdminPdvMobileRoute: typeof AdminAdminPdvMobileRoute
@@ -708,7 +748,9 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminCategoriasRoute: AdminAdminCategoriasRoute,
   AdminAdminClientesRoute: AdminAdminClientesRoute,
   AdminAdminConfiguracoesRoute: AdminAdminConfiguracoesRoute,
+  AdminAdminContasAPagarRoute: AdminAdminContasAPagarRoute,
   AdminAdminFinanceiroRoute: AdminAdminFinanceiroRoute,
+  AdminAdminFornecedoresRoute: AdminAdminFornecedoresRoute,
   AdminAdminInstagramPostsRoute: AdminAdminInstagramPostsRoute,
   AdminAdminPdvRoute: AdminAdminPdvRoute,
   AdminAdminPdvMobileRoute: AdminAdminPdvMobileRoute,

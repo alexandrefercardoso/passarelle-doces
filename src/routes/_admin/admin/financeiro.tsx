@@ -26,6 +26,7 @@ import {
   XCircle,
   Filter,
   Loader2,
+  Printer,
   RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -75,6 +76,14 @@ const METHOD_COLORS: Record<string, string> = {
   cheque: "#e84393",
   caderneta: "#0984e3",
 };
+
+function fmtShort(d: string): string {
+  return new Date(`${d}T00:00:00`).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
 
 function AdminFinanceiroPage() {
   const [tab, setTab] = useState<TabType>("dashboard");
@@ -188,7 +197,7 @@ function AdminFinanceiroPage() {
       {tab === "dashboard" ? (
         <DashboardTab orders={filteredOrders} periodStart={startDate} periodEnd={endDate} />
       ) : (
-        <ContasReceberTab orders={filteredOrders} />
+        <ContasReceberTab orders={filteredOrders} periodStart={startDate} periodEnd={endDate} />
       )}
     </div>
   );
@@ -620,7 +629,15 @@ function DashboardTab({
 /* CONTAS A RECEBER                                                    */
 /* ================================================================== */
 
-function ContasReceberTab({ orders }: { orders: Order[] }) {
+function ContasReceberTab({
+  orders,
+  periodStart,
+  periodEnd,
+}: {
+  orders: Order[];
+  periodStart: string;
+  periodEnd: string;
+}) {
   const [filter, setFilter] = useState<
     "todos" | "pendente" | "aprovado" | "recusado" | "cancelado"
   >("todos");
@@ -662,6 +679,152 @@ function ContasReceberTab({ orders }: { orders: Order[] }) {
       await queryClient.refetchQueries({ queryKey: ["all-orders"] });
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const imprimirRelatorio = () => {
+    const periodo =
+      periodStart || periodEnd
+        ? `${periodStart ? fmtShort(periodStart) : "início"} a ${periodEnd ? fmtShort(periodEnd) : "hoje"}`
+        : "Todos os períodos";
+    const fmtData = (iso: string) =>
+      new Date(iso).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    const fmtHora = (iso: string) =>
+      new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const paymentTxt = (s: string) =>
+      s === "pendente"
+        ? "Pendente"
+        : s === "aprovado"
+          ? "Aprovado"
+          : s === "recusado"
+            ? "Recusado"
+            : "Cancelado";
+    const paymentColor = (s: string) =>
+      s === "pendente"
+        ? "color:#d97706;font-weight:700"
+        : s === "aprovado"
+          ? "color:#16a34a;font-weight:700"
+          : s === "recusado"
+            ? "color:#dc2626;font-weight:700"
+            : "color:#6b7280;font-weight:700";
+
+    const rowsHtml = filtered
+      .map(
+        (o) => `<tr>
+          <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:11px;font-weight:600">#${o.id.slice(0, 8)}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:11px;text-align:center">${fmtData(o.createdAt)} ${fmtHora(o.createdAt)}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:11px">${o.customer.name}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:11px;text-align:center">${paymentLabel(o.paymentMethod)}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:11px;text-align:center;${paymentColor(o.paymentStatus)}">${paymentTxt(o.paymentStatus)}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:11px;text-align:center;color:#2563eb;font-weight:700">${statusLabel[o.status] ?? o.status}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:11px;text-align:right;font-weight:700">${formatCurrency(o.total)}</td>
+        </tr>`,
+      )
+      .join("");
+
+    const totalAll = filtered.reduce((a, o) => a + o.total, 0);
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Relatório de Contas a Receber – Passarelli Doces</title>
+  <style>
+    @media print {
+      @page { size: landscape; margin: 12mm 10mm; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; padding: 16px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #2a1510; padding-bottom: 10px; margin-bottom: 14px; }
+    .header h1 { font-size: 18px; color: #2a1510; }
+    .header h2 { font-size: 13px; color: #2a1510; font-weight: 600; }
+    .header .meta { font-size: 11px; color: #666; text-align: right; line-height: 1.5; }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+    .kpi { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; }
+    .kpi .label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+    .kpi .value { font-size: 16px; font-weight: 800; margin-top: 2px; }
+    .kpi .hint { font-size: 10px; color: #888; margin-top: 1px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th { background: #2a1510; color: #f5e6c8; padding: 7px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; text-align: left; }
+    th:first-child { border-radius: 6px 0 0 0; }
+    th:last-child { border-radius: 0 6px 0 0; }
+    td { text-align: left; }
+    tr:nth-child(even) { background: #fafaf8; }
+    .footer { margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 8px; display: flex; justify-content: space-between; font-size: 11px; color: #888; }
+    .footer .total { font-weight: 800; color: #2a1510; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Passarelli Doces</h1>
+      <h2>Relatório de Contas a Receber</h2>
+    </div>
+    <div class="meta">
+      Período: <strong>${periodo}</strong><br/>
+      Emitido em: <strong>${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</strong>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="label">A receber</div>
+      <div class="value" style="color:#d97706">${formatCurrency(summary.pendente)}</div>
+      <div class="hint">${orders.filter((o) => o.paymentStatus === "pendente" && o.status !== "cancelado").length} pedido${orders.filter((o) => o.paymentStatus === "pendente" && o.status !== "cancelado").length !== 1 ? "s" : ""}</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Recebido</div>
+      <div class="value" style="color:#16a34a">${formatCurrency(summary.aprovado)}</div>
+      <div class="hint">${orders.filter((o) => o.paymentStatus === "aprovado").length} pedido${orders.filter((o) => o.paymentStatus === "aprovado").length !== 1 ? "s" : ""}</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Recusado</div>
+      <div class="value" style="color:#dc2626">${formatCurrency(summary.recusado)}</div>
+      <div class="hint">${orders.filter((o) => o.paymentStatus === "recusado").length} pedido${orders.filter((o) => o.paymentStatus === "recusado").length !== 1 ? "s" : ""}</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Cancelado</div>
+      <div class="value" style="color:#6b7280">${formatCurrency(summary.cancelado)}</div>
+      <div class="hint">${orders.filter((o) => o.paymentStatus === "cancelado").length} pedido${orders.filter((o) => o.paymentStatus === "cancelado").length !== 1 ? "s" : ""}</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Pedido</th>
+        <th style="text-align:center">Data</th>
+        <th>Cliente</th>
+        <th style="text-align:center">Método</th>
+        <th style="text-align:center">Status Pgto</th>
+        <th style="text-align:center">Status</th>
+        <th style="text-align:right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rowsHtml}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <span>${filtered.length} registro${filtered.length !== 1 ? "s" : ""}</span>
+    <span class="total">Total: ${formatCurrency(totalAll)}</span>
+  </div>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      setTimeout(() => win.print(), 400);
+    } else {
+      toast.error("Bloqueador de pop-ups impediu a impressão. Libere este site.");
     }
   };
 
@@ -712,6 +875,15 @@ function ContasReceberTab({ orders }: { orders: Order[] }) {
             Contas a Receber ({filtered.length})
           </h3>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={imprimirRelatorio}
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Imprimir relatório
+            </Button>
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Select value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
               <SelectTrigger className="h-8 w-40 rounded-full text-xs">
