@@ -2,7 +2,19 @@
 
 import { useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight, Copy, Loader2, Pencil, Plus, Printer, Tags, Trash2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  ClipboardCheck,
+  Copy,
+  Loader2,
+  PackageCheck,
+  Pencil,
+  Plus,
+  Printer,
+  Tags,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +38,12 @@ import {
 } from "@/components/ui/select";
 import { useAdminData } from "@/hooks/use-admin-data";
 import { ImagePicker } from "@/components/admin/image-picker";
-import { printProductCatalog } from "@/components/admin/print-report";
+import {
+  printProductCatalog,
+  printProductCheckReport,
+  printProductMinStockReport,
+  printProductSalesCatalog,
+} from "@/components/admin/print-report";
 import { adminDeleteProduct, adminInsertProduct, adminUpdateProduct } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { formatCurrency, slugify } from "@/lib/format";
@@ -114,13 +131,34 @@ function AdminProductsPage() {
             Gerencie os produtos da loja: preços, estoque e destaque.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             className="rounded-full"
             onClick={() => printProductCatalog(products, categories)}
           >
             <Printer className="h-4 w-4" /> Relatório A4
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={() => printProductCheckReport(products, categories)}
+          >
+            <ClipboardCheck className="h-4 w-4" /> Conferência
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={() => printProductMinStockReport(products, categories)}
+          >
+            <PackageCheck className="h-4 w-4" /> Estoque mínimo
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-full border-gold/60 text-chocolate hover:bg-gold/10"
+            onClick={() => printProductSalesCatalog(products, categories)}
+          >
+            <BookOpen className="h-4 w-4" /> Catálogo de vendas
           </Button>
           <Button className="rounded-full" onClick={() => setCreating(true)}>
             <Plus className="h-4 w-4" /> Novo produto

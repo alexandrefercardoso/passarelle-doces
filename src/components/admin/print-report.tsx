@@ -622,3 +622,407 @@ export function printProductCatalog(products: Product[], categories: Category[])
   w.focus();
   setTimeout(() => w.print(), 400);
 }
+
+/* ================================================================== */
+/* Relatório de Estoque Mínimo — produtos com mínimo definido e        */
+/* situação de reposição.                                             */
+/* ================================================================== */
+
+export function printProductMinStockReport(products: Product[], categories: Category[]) {
+  const catName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Sem categoria";
+
+  const withMin = products.filter((p) => p.minimumStock > 0);
+
+  const sorted = [...withMin].sort(
+    (a, b) =>
+      catName(a.categoryId).localeCompare(catName(b.categoryId), "pt-BR") ||
+      a.stock / a.minimumStock - b.stock / b.minimumStock ||
+      a.name.localeCompare(b.name, "pt-BR"),
+  );
+
+  const low = withMin.filter((p) => p.stock === 0 || p.stock < p.minimumStock);
+  const ok = withMin.filter((p) => p.stock >= p.minimumStock);
+
+  const statusOf = (p: Product): { label: string; cls: string } => {
+    if (p.stock === 0) return { label: "Esgotado", cls: "red" };
+    if (p.stock < p.minimumStock) return { label: "Baixo", cls: "amber" };
+    return { label: "Ok", cls: "green" };
+  };
+
+  const rows = sorted
+    .map((p) => {
+      const negative = p.stock < p.minimumStock;
+      return `
+      <tr>
+        <td class="center">${prodImageTag(p)}</td>
+        <td style="font-size:8pt">${p.barcode ? escHtml(p.barcode) : "—"}</td>
+        <td>
+          <div class="strong">${escHtml(p.name)}</div>
+          ${p.badges.length > 0 ? `<div style="color:#b78a2f;font-size:7pt">${p.badges.map(escHtml).join(", ")}</div>` : ""}
+        </td>
+        <td>${escHtml(catName(p.categoryId))}</td>
+        <td class="right strong">${formatCurrency(p.price)}${p.unitLabel ? `<span class="muted">/${escHtml(p.unitLabel)}</span>` : ""}</td>
+        <td class="center strong">${p.stock}</td>
+        <td class="center strong">${p.minimumStock}</td>
+        <td class="center"><span class="status ${statusOf(p).cls}">${statusOf(p).label}</span></td>
+        <td class="right">
+          ${negative ? `<span class="need">Repor ${p.minimumStock - p.stock}</span>` : "<span class='muted'>—</span>"}
+        </td>
+      </tr>`;
+    })
+    .join("\n");
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Estoque Mínimo de Produtos</title>
+<style>
+  @page { size: A4; margin: 10mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #2a2118; }
+  .header {
+    background: linear-gradient(135deg, #241306 0%, #3c2415 55%, #69350f 100%);
+    color: #fff; border-radius: 10px; padding: 14px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .header h1 { font-size: 15pt; letter-spacing: 0.02em; }
+  .header .sub { font-size: 7.5pt; color: #e9d8a7; margin-top: 2px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .header .stamp { text-align: right; font-size: 8pt; color: #f3e4c4; }
+  .summary { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .chip { border: 1px solid #eadfce; border-radius: 999px; padding: 5px 12px; font-size: 8pt; background: #fffdf9; }
+  .chip b { color: #3c2415; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #3c2415; color: #fff; font-size: 7pt; text-transform: uppercase; letter-spacing: 0.06em; padding: 5px 7px; text-align: left; }
+  td { padding: 5px 7px; border-bottom: 1px solid #efe7db; vertical-align: middle; }
+  tr:nth-child(even) td { background: #faf6f0; }
+  .right { text-align: right; }
+  .center { text-align: center; }
+  .strong { font-weight: 700; color: #2a2118; }
+  .muted { color: #9d9182; font-size: 7.5pt; }
+  .need { color: #b3362a; font-weight: 800; font-size: 8pt; }
+  .status { font-size: 6.8pt; font-weight: 800; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .status.green { background: #e4f4e8; color: #247a41; }
+  .status.amber { background: #fdf0d7; color: #9a6508; }
+  .status.red { background: #fbe5e2; color: #b3362a; }
+  .footer { margin-top: 12px; text-align: center; font-size: 7.5pt; color: #b3a696; border-top: 1px solid #eadfce; padding-top: 6px; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Estoque Mínimo de Produtos 📦</h1>
+      <div class="sub">Passarelli Doces</div>
+    </div>
+    <div class="stamp">
+      Emitido em<br>
+      ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+    </div>
+  </div>
+
+  <div class="summary">
+    <span class="chip">Produtos com mínimo <b>${withMin.length}</b></span>
+    <span class="chip">Atenção (esgotado/abaixo) <b>${low.length}</b></span>
+    <span class="chip">Estoque ok <b>${ok.length}</b></span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:42px">Foto</th>
+        <th style="width:100px">Código</th>
+        <th>Produto</th>
+        <th>Categoria</th>
+        <th class="right">Preço</th>
+        <th class="center" style="width:55px">Estoque</th>
+        <th class="center" style="width:55px">Mínimo</th>
+        <th class="center" style="width:75px">Situação</th>
+        <th class="right" style="width:80px">Repor</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    Passarelli Doces — Relatório de estoque mínimo gerado em ${new Date().toLocaleDateString("pt-BR")}
+  </div>
+</body>
+</html>`;
+
+  const w = window.open("", "_blank", "width=900,height=900");
+  if (!w) {
+    window.alert("Permita pop-ups para imprimir o relatório.");
+    return;
+  }
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 400);
+}
+
+/* ================================================================== */
+/* Catálogo de Vendas por Categoria — cards com imagem grande,         */
+/* descrição e valor, em A4.                                         */
+/* ================================================================== */
+
+function catalogImageTag(p: Product): string {
+  if (p.imageUrl) {
+    return `<img src="${p.imageUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">`;
+  }
+  return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:52px;background:linear-gradient(135deg,#f9e8ec,#f4edde)">🧁</div>`;
+}
+
+export function printProductSalesCatalog(products: Product[], categories: Category[]) {
+  const catName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Sem categoria";
+
+  const activeCats = categories.filter((c) => c.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const sections = activeCats
+    .map((cat, ci) => {
+      const cProducts = products
+        .filter((p) => p.isActive && p.categoryId === cat.id)
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+
+      const cards = cProducts
+        .map(
+          (p) => `
+        <div class="card">
+          <div class="pic">${catalogImageTag(p)}</div>
+          <div class="body">
+            <div class="name">${escHtml(p.name)}</div>
+            <div class="desc">${p.description ? escHtml(p.description) : ""}</div>
+            <div class="price">${formatCurrency(p.price)}${p.unitLabel ? `<span class="unit">/${escHtml(p.unitLabel)}</span>` : ""}</div>
+            ${
+              p.compareAtPrice && p.compareAtPrice > p.price
+                ? `<div class="old">${formatCurrency(p.compareAtPrice)}</div>`
+                : ""
+            }
+          </div>
+        </div>`,
+        )
+        .join("\n");
+
+      if (cProducts.length === 0) return "";
+
+      const emoji = ci % 2 === 0 ? "🍰" : "🧁";
+      return `
+  <section class="cat" style="${ci > 0 ? "break-before: page; -webkit-column-break-before: always; page-break-before: always;" : ""}">
+    <div class="cat-head">
+      <div class="cat-badge">${emoji}</div>
+      <div>
+        <div class="cat-title">${escHtml(catName(cat.id))}</div>
+        <div class="cat-count">${cProducts.length} ${cProducts.length !== 1 ? "produtos" : "produto"}</div>
+      </div>
+    </div>
+    <div class="grid">
+      ${cards}
+    </div>
+  </section>`;
+    })
+    .join("\n");
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Catálogo de Vendas — Passarelli Doces</title>
+<style>
+  @page { size: A4; margin: 10mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #2a2118; }
+  .cover {
+    background: linear-gradient(160deg, #26150a 0%, #4a2c13 60%, #6b3a14 100%);
+    color: #fff; border-radius: 14px; padding: 22px 24px;
+    margin-bottom: 12px; position: relative; overflow: hidden;
+  }
+  .cover::after {
+    content: ""; position: absolute; right: -30px; top: -30px;
+    width: 170px; height: 170px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 70%);
+  }
+  .cover h1 { font-size: 22pt; letter-spacing: 0.01em; }
+  .cover .brand { font-size: 8.5pt; color: #e9d8a7; letter-spacing: 0.24em; text-transform: uppercase; margin-top: 3px; }
+  .cover .meta { margin-top: 10px; font-size: 8pt; color: #f3e6cd; display: flex; gap: 16px; flex-wrap: wrap; }
+  .cover .meta span { background: rgba(255,255,255,0.10); padding: 3px 10px; border-radius: 999px; }
+  .cat { margin-bottom: 4px; }
+  .cat-head {
+    display: flex; align-items: center; gap: 10px;
+    margin: 8px 0 10px; padding-bottom: 8px; border-bottom: 3px solid #5a341a;
+  }
+  .cat-badge {
+    width: 34px; height: 34px; border-radius: 10px; flex: none;
+    background: linear-gradient(135deg, #f2dcc4, #fff6ea);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+    box-shadow: 0 1px 3px rgba(58,36,15,0.18);
+  }
+  .cat-title { font-size: 15pt; font-weight: 800; letter-spacing: 0.01em; color: #3c2415; }
+  .cat-count { font-size: 7.5pt; color: #a08a6e; text-transform: uppercase; letter-spacing: 0.1em; }
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px;
+  }
+  .card {
+    break-inside: avoid; page-break-inside: avoid;
+    border: 1px solid #eee0cf; border-radius: 12px; overflow: hidden;
+    background: #fffdf9; display: flex; flex-direction: column;
+    box-shadow: 0 1px 3px rgba(58,36,15,0.07);
+  }
+  .card .pic { aspect-ratio: 1 / 1; background: linear-gradient(160deg, #f9e8ec, #f4edde); width: 100%; overflow: hidden; }
+  .card .body { padding: 8px 9px 9px; display: flex; flex-direction: column; gap: 2px; }
+  .card .name { font-size: 9pt; font-weight: 800; color: #321d0c; line-height: 1.2; }
+  .card .desc {
+    font-size: 7pt; color: #857566; line-height: 1.35; display: -webkit-box;
+    -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em;
+  }
+  .card .desc:empty { display: none; }
+  .card .price { margin-top: auto; padding-top: 4px; font-size: 11pt; font-weight: 900; color: #1e6b3c; }
+  .card .unit { font-size: 7.5pt; font-weight: 600; color: #9a8f7f; }
+  .card .old { font-size: 7.5pt; font-weight: 600; color: #b57d7d; text-decoration: line-through; }
+  .footer { margin-top: 10px; text-align: center; font-size: 7pt; color: #b3a696; border-top: 1px solid #eadfce; padding-top: 6px; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    section { -webkit-column-break-before: page; }
+  }
+</style>
+</head>
+<body>
+  <div class="cover">
+    <div>
+      <h1>Nossos Doces 🍫</h1>
+      <div class="brand">Passarelli Doces</div>
+      <div class="meta">
+        <span>📅 ${new Date().toLocaleDateString("pt-BR")}</span>
+      </div>
+    </div>
+  </div>
+
+  ${sections}
+
+  <div class="footer">
+    Passarelli Doces — Catálogo de vendas gerado em ${new Date().toLocaleDateString("pt-BR")}
+  </div>
+</body>
+</html>`;
+
+  const w = window.open("", "_blank", "width=900,height=900");
+  if (!w) {
+    window.alert("Permita pop-ups para imprimir o relatório.");
+    return;
+  }
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 400);
+}
+
+export function printProductCheckReport(products: Product[], categories: Category[]) {
+  const catName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Sem categoria";
+
+  const sorted = [...products].sort(
+    (a, b) =>
+      catName(a.categoryId).localeCompare(catName(b.categoryId), "pt-BR") ||
+      a.name.localeCompare(b.name, "pt-BR"),
+  );
+
+  const rows = sorted
+    .map(
+      (p) => `
+      <tr>
+        <td class="center">${prodImageTag(p)}</td>
+        <td style="font-size:8pt">${p.barcode ? escHtml(p.barcode) : "—"}</td>
+        <td>
+          <div class="strong">${escHtml(p.name)}</div>
+          ${p.badges.length > 0 ? `<div style="color:#b78a2f;font-size:7pt">${p.badges.map(escHtml).join(", ")}</div>` : ""}
+        </td>
+        <td>${escHtml(catName(p.categoryId))}</td>
+        <td class="right strong">${formatCurrency(p.price)}</td>
+        <td class="center empty">____</td>
+        <td class="center">${p.unitLabel ? escHtml(p.unitLabel.toUpperCase()) : "—"}</td>
+      </tr>`,
+    )
+    .join("\n");
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Conferência de Produtos</title>
+<style>
+  @page { size: A4; margin: 10mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #2a2118; }
+  .header {
+    background: linear-gradient(135deg, #241306 0%, #3c2415 55%, #69350f 100%);
+    color: #fff; border-radius: 10px; padding: 14px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .header h1 { font-size: 15pt; letter-spacing: 0.02em; }
+  .header .sub { font-size: 7.5pt; color: #e9d8a7; margin-top: 2px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .header .stamp { text-align: right; font-size: 8pt; color: #f3e4c4; }
+  .infoline { display: flex; gap: 14px; font-size: 8pt; color: #7a6b58; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #3c2415; color: #fff; font-size: 7pt; text-transform: uppercase; letter-spacing: 0.06em; padding: 5px 7px; text-align: left; }
+  td { padding: 5px 7px; border-bottom: 1px solid #efe7db; vertical-align: middle; }
+  tr:nth-child(even) td { background: #faf6f0; }
+  .right { text-align: right; }
+  .center { text-align: center; }
+  .empty { border-left: 1px dashed #e0d6c8; background: #fffdf9 !important; }
+  .strong { font-weight: 700; color: #2a2118; }
+  .footer { margin-top: 12px; text-align: center; font-size: 7.5pt; color: #b3a696; border-top: 1px solid #eadfce; padding-top: 6px; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Conferência de Produtos 🧁</h1>
+      <div class="sub">Passarelli Doces</div>
+    </div>
+    <div class="stamp">
+      Emitido em<br>
+      ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+    </div>
+  </div>
+
+  <div class="infoLine" style="display:flex;gap:14px;font-size:8pt;color:#7a6b58;margin-bottom:8px">
+    <span><strong style="color:#3c2415">${products.length}</strong> produto${products.length !== 1 ? "s" : ""}</span>
+    <span><strong style="color:#3c2415">${categories.filter((c) => c.isActive).length}</strong> categoria${categories.filter((c) => c.isActive).length !== 1 ? "s" : ""} ativa${categories.filter((c) => c.isActive).length !== 1 ? "s" : ""}</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:42px">Foto</th>
+        <th style="width:110px">Código</th>
+        <th>Produto</th>
+        <th>Categoria</th>
+        <th class="right">Preço</th>
+        <th class="center" style="width:110px">Novo valor</th>
+        <th class="center" style="width:70px">Unidade</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    Passarelli Doces — Relatório de conferência gerado em ${new Date().toLocaleDateString("pt-BR")}
+  </div>
+</body>
+</html>`;
+
+  const w = window.open("", "_blank", "width=900,height=900");
+  if (!w) {
+    window.alert("Permita pop-ups para imprimir o relatório.");
+    return;
+  }
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 400);
+}
