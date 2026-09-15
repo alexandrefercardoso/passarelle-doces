@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  ArrowUpRight,
+  ArrowUpDown,
   BookOpen,
   ClipboardCheck,
   Copy,
@@ -12,6 +12,7 @@ import {
   Pencil,
   Plus,
   Printer,
+  Search,
   Tags,
   Trash2,
 } from "lucide-react";
@@ -53,11 +54,62 @@ export const Route = createFileRoute("/_admin/admin/produtos")({
   component: AdminProductsPage,
 });
 
+type SortKey = "nameAsc" | "nameDesc" | "priceAsc" | "priceDesc" | "stockAsc" | "salesDesc";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "nameAsc", label: "Nome (A–Z)" },
+  { value: "nameDesc", label: "Nome (Z–A)" },
+  { value: "priceAsc", label: "Menor preço" },
+  { value: "priceDesc", label: "Maior preço" },
+  { value: "stockAsc", label: "Menor estoque" },
+  { value: "salesDesc", label: "Mais vendidos" },
+];
+
 function AdminProductsPage() {
   const { products, categories, loading, refresh } = useAdminData();
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
   const [cloning, setCloning] = useState<ProductFormValues | null>(null);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<SortKey>("nameAsc");
+
+  const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Sem categoria";
+
+  const filteredProducts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
+    let list = products;
+    if (term) {
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(term) ||
+          (p.barcode ?? "").toLowerCase().includes(term) ||
+          (categoryNames.get(p.categoryId) ?? "Sem categoria").toLowerCase().includes(term),
+      );
+    }
+    const sorted = [...list];
+    switch (sortBy) {
+      case "nameAsc":
+        sorted.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+        break;
+      case "nameDesc":
+        sorted.sort((a, b) => b.name.localeCompare(a.name, "pt-BR"));
+        break;
+      case "priceAsc":
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case "priceDesc":
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case "stockAsc":
+        sorted.sort((a, b) => a.stock - b.stock);
+        break;
+      case "salesDesc":
+        sorted.sort((a, b) => b.salesCount - a.salesCount);
+        break;
+    }
+    return sorted;
+  }, [products, search, sortBy, categories]);
 
   const closeForms = () => {
     setEditing(null);
@@ -118,7 +170,7 @@ function AdminProductsPage() {
     return <div className="h-96 animate-pulse rounded-2xl bg-muted" />;
   }
 
-  const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Sem categoria";
+  const hasActiveFilters = search.trim().length > 0;
 
   return (
     <div>
@@ -167,6 +219,32 @@ function AdminProductsPage() {
       </div>
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="flex flex-col gap-3 border-b border-border bg-muted/30 p-4 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar produto por nome, código de barras ou categoria..."
+              className="pl-9"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
+              <SelectTrigger className="w-full sm:w-56" aria-label="Ordenar produtos">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -180,7 +258,7 @@ function AdminProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
+              {filteredProducts.map((p) => (
                 <tr
                   key={p.id}
                   className="border-b border-border/60 last:border-0 hover:bg-muted/40"
@@ -298,13 +376,24 @@ function AdminProductsPage() {
             </tbody>
           </table>
         </div>
-        {products.length === 0 && (
+        {filteredProducts.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-2 px-4 py-16 text-center">
             <Tags className="h-8 w-8 text-muted-foreground" aria-hidden />
-            <p className="font-medium text-foreground">Nenhum produto cadastrado</p>
-            <p className="text-sm text-muted-foreground">
-              Clique em &quot;Novo produto&quot; para adicionar o primeiro.
-            </p>
+            {hasActiveFilters ? (
+              <>
+                <p className="font-medium text-foreground">Nenhum produto encontrado</p>
+                <p className="text-sm text-muted-foreground">
+                  Ajuste o termo da busca para ver resultados.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium text-foreground">Nenhum produto cadastrado</p>
+                <p className="text-sm text-muted-foreground">
+                  Clique em &quot;Novo produto&quot; para adicionar o primeiro.
+                </p>
+              </>
+            )}
           </div>
         )}
       </div>
